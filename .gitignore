@@ -1,0 +1,8 @@
+*.crf
+*.d
+*.o
+*.axf
+*.build_log
+*.lnp
+*.lst
+*.dep
