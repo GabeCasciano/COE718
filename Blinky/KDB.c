@@ -1,4 +1,4 @@
-#inlcude "LPC17xx.h"
+#include "LPC17xx.H" 
 #include "KDB.h"
 
 uint32_t KDB_val = 0;

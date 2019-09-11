@@ -1,0 +1,115 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+S:\COE718\Blinky\Blinky.uvproj
+Project File Date:  09/11/2019
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling KDB.c...
+KDB.c(10): error:  #20: identifier "LPC_GPIO" is undefined
+      LPC_GPIO->FIODIR &= ~((1<<20)|(1<<23)|(1<<24)|(1<<25)|(1<<26));//P1.20, P1.23...26 as input
+KDB.c: 0 warnings, 1 error
+compiling LED.c...
+LED.c(5): error:  #136: struct "<unnamed>" has no field "PCCONP"
+      LPC_SC->PCCONP |=
+LED.c(6): warning:  #1-D: last line of file ends without a newline
+  }
+LED.c(6): error:  #29: expected an expression
+  }
+LED.c(6): error:  #65: expected a ";"
+  }
+LED.c: 1 warning, 3 errors
+compiling Joystick.c...
+Joystick.c(30): error:  #118: a void function may not return a value
+      return(joyStickValue);
+Joystick.c: 0 warnings, 1 error
+".\Blinky.axf" - 5 Error(s), 1 Warning(s).
+Target not created
+</pre>
+</body>
+</html>
+7: expected a statement
+      else if((temp & KDB_RIGHT) == KDB_RIGHT)
+Joystick.c(22): error:  #127: expected a statement
+      else if((temp & KDB_SELECT) == KDB_SELECT)
+Joystick.c(25): error:  #118: a void function may not return a value
+      return(joyStickValue);
+Joystick.c: 0 warnings, 5 errors
+compiling ADC.c...
+".\Blinky.axf" - 9 Error(s), 1 Warning(s).
+Target not created
+dentifier "LPC_GPIO1" is undefined
+      kdb_val = (LPC_GPIO1->FIOPIN >> 20) & KDB_MASK;
+KDB.c(20): error:  #20: identifier "uint32_t" is undefined
+  uint32_t get_button(void){
+KDB.c(21): error:  #20: identifier "uint32_t" is undefined
+      uint32_t val = 0;
+KDB.c: 0 warnings, 13 errors
+compiling LED.c...
+LED.c(4): error:  #20: identifier "LPC_SC" is undefined
+      LPC_SC->PCCONP |=
+LED.c(5): warning:  #1-D: last line of file ends without a newline
+  }
+LED.c(5): error:  #29: expected an expression
+  }
+LED.c(5): error:  #65: expected a ";"
+  }
+LED.c: 1 warning, 3 errors
+compiling Joystick.c...
+Joystick.h(14): error:  #20: identifier "uint8_t" is undefined
+  extern uint8_t joyStickValue;
+KDB.h(11): error:  #20: identifier "uint32_t" is undefined
+  extern uint32_t KDB_val;
+KDB.h(14): error:  #20: identifier "uint32_t" is undefined
+  extern uint32_t KDB_get(void);
+KDB.h(15): error:  #20: identifier "uint32_t" is undefined
+  extern uint32_t KDB_button(void);
+Joystick.c(8): error:  #20: identifier "uint8_t" is undefined
+  uint8_t joyStickValue = 0;
+Joystick.c(11): error:  #20: identifier "uint32_t" is undefined
+      uint32_t temp = KDB_button() ;
+Joystick.c(15): error:  #127: expected a statement
+      else if((temp & KDB_DOWN) == KDB_DOWN)
+Joystick.c(17): error:  #127: expected a statement
+      else if((temp & KDB_LEFT) == KDB_LEFT)
+Joystick.c(19): error:  #127: expected a statement
+      else if((temp & KDB_RIGHT) == KDB_RIGHT)
+Joystick.c(21): error:  #127: expected a statement
+      else if((temp & KDB_SELECT) == KDB_SELECT)
+Joystick.c(24): error:  #118: a void function may not return a value
+      return(joyStickValue);
+Joystick.c: 0 warnings, 11 errors
+compiling IRQ.c...
+compiling Blinky.c...
+compiling GLCD_SPI_LPC1700.c...
+compiling ADC.c...
+".\Blinky.axf" - 27 Error(s), 1 Warning(s).
+Target not created
+compiling Joystick.c...
+Joystick.h(14): error:  #20: identifier "uint8_t" is undefined
+  extern uint8_t joyStickValue;
+KDB.h(11): error:  #20: identifier "uint32_t" is undefined
+  extern uint32_t KDB_val;
+KDB.h(14): error:  #20: identifier "uint32_t" is undefined
+  extern uint32_t KDB_get(void);
+KDB.h(15): error:  #20: identifier "uint32_t" is undefined
+  extern uint32_t KDB_button(void);
+Joystick.c(8): error:  #20: identifier "uint8_t" is undefined
+  uint8_t joyStickValue = 0;
+Joystick.c(11): error:  #20: identifier "uint32_t" is undefined
+      uint32_t temp = KDB_button() ;
+Joystick.c(15): error:  #127: expected a statement
+      else if((temp & KDB_DOWN) == KDB_DOWN)
+Joystick.c(17): error:  #127: expected a statement
+      else if((temp & KDB_LEFT) == KDB_LEFT)
+Joystick.c(19): error:  #127: expected a statement
+      else if((temp & KDB_RIGHT) == KDB_RIGHT)
+Joystick.c(21): error:  #127: expected a statement
+      else if((temp & KDB_SELECT) == KDB_SELECT)
+Joystick.c(24): error:  #118: a void function may not return a value
+      return(joyStickValue);
+Joystick.c: 0 warnings, 11 errors
+"Joystick.c" - 11 Error(s), 0 Warning(s).

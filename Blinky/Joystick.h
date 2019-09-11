@@ -11,9 +11,9 @@
 #define RIGHT 0x4;
 #define SELECT 0X5;
 
-extern uint8_t joyStickValue;
+extern uint32_t joyStickValue;
 
-extern void updateJoystickValue(void);
+extern uint32_t updateJoystickValue(void);
 
 
 #endif //_JOYSTICK_H
