@@ -12,7 +12,7 @@
 #include "KDB.h"
 
 char JOYSTICK_val[6];
-uint32_t KBD_neutral = 0x0000;
+uint32_t KBD_neutral = 0;
 
 /**JOYSTICK_getNeutral
  * Used to get the neutral value of KDB
@@ -38,7 +38,7 @@ void JOYSTICK_Init(void){
  */
 char* JOYSTICK_Update(void){
     uint32_t temp = KDB_button() ;
-    if(temp == KBD_neutral) {
+    if(temp != KBD_neutral) {
         if ((temp & KDB_UP) == KDB_UP) {
             strcpy(JOYSTICK_val, JOYSTICK_UP);
         } else if ((temp & KDB_DOWN) == KDB_DOWN) {

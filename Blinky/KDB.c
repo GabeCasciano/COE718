@@ -17,7 +17,7 @@ uint32_t KDB_get(void){
     return (kdb_val);
 }
 
-uint32_t get_button(void){
+uint32_t KDB_button(void){
     uint32_t val = 0;
 
     val = KDB_get(); //read state

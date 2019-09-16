@@ -27,7 +27,7 @@
     <TargetOption>
       <CLKADS>12000000</CLKADS>
       <OPTTT>
-        <gFlags>1</gFlags>
+        <gFlags>0</gFlags>
         <BeepAtEnd>1</BeepAtEnd>
         <RunSim>1</RunSim>
         <RunTarget>0</RunTarget>
@@ -104,8 +104,8 @@
         </Book>
       </Books>
       <DebugOpt>
-        <uSim>0</uSim>
-        <uTrg>1</uTrg>
+        <uSim>1</uSim>
+        <uTrg>0</uTrg>
         <sLdApp>1</sLdApp>
         <sGomain>1</sGomain>
         <sRbreak>1</sRbreak>
@@ -123,7 +123,7 @@
         <tRtrace>1</tRtrace>
         <sRSysVw>1</sRSysVw>
         <tRSysVw>1</tRSysVw>
-        <tPdscDbg>0</tPdscDbg>
+        <tPdscDbg>1</tPdscDbg>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
         <nTsel>1</nTsel>
@@ -142,23 +142,8 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
-          <Key>DLGTARM</Key>
-          <Name>(1010=-1,-1,-1,-1,0)(1007=-1,-1,-1,-1,0)(1008=-1,-1,-1,-1,0)(1009=-1,-1,-1,-1,0)(1012=-1,-1,-1,-1,0)(350=-1,-1,-1,-1,0)(250=-1,-1,-1,-1,0)(270=-1,-1,-1,-1,0)(313=-1,-1,-1,-1,0)(291=-1,-1,-1,-1,0)(302=-1,-1,-1,-1,0)(110=-1,-1,-1,-1,0)(113=-1,-1,-1,-1,0)(320=-1,-1,-1,-1,0)(210=-1,-1,-1,-1,0)(330=-1,-1,-1,-1,0)(332=-1,-1,-1,-1,0)(333=-1,-1,-1,-1,0)(334=-1,-1,-1,-1,0)(335=-1,-1,-1,-1,0)(336=-1,-1,-1,-1,0)(345=-1,-1,-1,-1,0)(346=-1,-1,-1,-1,0)(381=-1,-1,-1,-1,0)(382=-1,-1,-1,-1,0)(383=-1,-1,-1,-1,0)(384=-1,-1,-1,-1,0)(197=-1,-1,-1,-1,0)(198=-1,-1,-1,-1,0)(191=-1,-1,-1,-1,0)(192=-1,-1,-1,-1,0)(180=-1,-1,-1,-1,0)(261=-1,-1,-1,-1,0)(262=-1,-1,-1,-1,0)(231=-1,-1,-1,-1,0)(232=-1,-1,-1,-1,0)(233=-1,-1,-1,-1,0)(121=-1,-1,-1,-1,0)(122=-1,-1,-1,-1,0)(123=-1,-1,-1,-1,0)(124=-1,-1,-1,-1,0)(170=-1,-1,-1,-1,0)(142=-1,-1,-1,-1,0)(150=-1,-1,-1,-1,0)(400=-1,-1,-1,-1,0)(370=-1,-1,-1,-1,0)(160=-1,-1,-1,-1,0)(280=-1,-1,-1,-1,0)(240=-1,-1,-1,-1,0)</Name>
-        </SetRegEntry>
-        <SetRegEntry>
-          <Number>0</Number>
-          <Key>ARMDBGFLAGS</Key>
-          <Name></Name>
-        </SetRegEntry>
-        <SetRegEntry>
-          <Number>0</Number>
-          <Key>DLGUARM</Key>
-          <Name>(105=-1,-1,-1,-1,0)</Name>
-        </SetRegEntry>
-        <SetRegEntry>
-          <Number>0</Number>
           <Key>UL2CM3</Key>
-          <Name>-UM1709UEE -O463 -S0 -C0 -P00 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD10000000 -FC800 -FN1 -FF0LPC_IAP_512 -FS00 -FL080000</Name>
+          <Name>UL2CM3(-O463 -O463 -S0 -C0 -FO7  -FN1 -FC800 -FD10000000 -FF0LPC_IAP_512 -FL080000 -FS00</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
       <Breakpoint/>
@@ -168,12 +153,12 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>1</periodic>
-        <aLwin>1</aLwin>
+        <aLwin>0</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>
         <aPa>0</aPa>
-        <viewmode>1</viewmode>
+        <viewmode>0</viewmode>
         <vrSel>0</vrSel>
         <aSym>0</aSym>
         <aTbox>0</aTbox>
@@ -186,9 +171,9 @@
         <aPa1>0</aPa1>
         <AscS4>0</AscS4>
         <aSer4>0</aSer4>
-        <StkLoc>1</StkLoc>
+        <StkLoc>0</StkLoc>
         <TrcWin>0</TrcWin>
-        <newCpu>0</newCpu>
+        <newCpu>3</newCpu>
         <uProt>0</uProt>
       </DebugFlag>
       <LintExecutable></LintExecutable>
@@ -208,29 +193,13 @@
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>30</ColumnNumber>
-      <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>109</TopLine>
-      <CurrentLine>128</CurrentLine>
-      <bDave2>0</bDave2>
-      <PathWithFileName>.\startup_LPC17xx.s</PathWithFileName>
-      <FilenameWithoutPath>startup_LPC17xx.s</FilenameWithoutPath>
-      <RteFlg>0</RteFlg>
-      <bShared>0</bShared>
-    </File>
-    <File>
-      <GroupNumber>1</GroupNumber>
-      <FileNumber>2</FileNumber>
-      <FileType>1</FileType>
-      <tvExp>0</tvExp>
-      <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>1</TopLine>
       <CurrentLine>1</CurrentLine>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\system_LPC17xx.c</PathWithFileName>
-      <FilenameWithoutPath>system_LPC17xx.c</FilenameWithoutPath>
+      <PathWithFileName>.\startup_LPC17xx.s</PathWithFileName>
+      <FilenameWithoutPath>startup_LPC17xx.s</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -244,17 +213,33 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>2</GroupNumber>
+      <FileNumber>2</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>21</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>1</TopLine>
+      <CurrentLine>1</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\KDB.c</PathWithFileName>
+      <FilenameWithoutPath>KDB.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
       <FileNumber>3</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>28</ColumnNumber>
+      <ColumnNumber>31</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
       <TopLine>1</TopLine>
-      <CurrentLine>24</CurrentLine>
+      <CurrentLine>7</CurrentLine>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\KDB.c</PathWithFileName>
-      <FilenameWithoutPath>KDB.c</FilenameWithoutPath>
+      <PathWithFileName>.\LED.c</PathWithFileName>
+      <FilenameWithoutPath>LED.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -264,13 +249,13 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>20</ColumnNumber>
+      <ColumnNumber>9</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1</TopLine>
-      <CurrentLine>8</CurrentLine>
+      <TopLine>5</TopLine>
+      <CurrentLine>15</CurrentLine>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\LED.c</PathWithFileName>
-      <FilenameWithoutPath>LED.c</FilenameWithoutPath>
+      <PathWithFileName>.\Joystick.c</PathWithFileName>
+      <FilenameWithoutPath>Joystick.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -280,13 +265,13 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>13</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>28</TopLine>
-      <CurrentLine>41</CurrentLine>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Joystick.c</PathWithFileName>
-      <FilenameWithoutPath>Joystick.c</FilenameWithoutPath>
+      <PathWithFileName>.\IRQ.c</PathWithFileName>
+      <FilenameWithoutPath>IRQ.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -296,10 +281,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>5</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>105</TopLine>
-      <CurrentLine>128</CurrentLine>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\Blinky.c</PathWithFileName>
       <FilenameWithoutPath>Blinky.c</FilenameWithoutPath>
@@ -314,8 +299,8 @@
       <Focus>0</Focus>
       <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>139</TopLine>
-      <CurrentLine>144</CurrentLine>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\GLCD_SPI_LPC1700.c</PathWithFileName>
       <FilenameWithoutPath>GLCD_SPI_LPC1700.c</FilenameWithoutPath>
@@ -341,22 +326,54 @@
     <File>
       <GroupNumber>2</GroupNumber>
       <FileNumber>9</FileNumber>
-      <FileType>1</FileType>
+      <FileType>5</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>6</ColumnNumber>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>18</TopLine>
-      <CurrentLine>42</CurrentLine>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\IRQ.c</PathWithFileName>
-      <FilenameWithoutPath>IRQ.c</FilenameWithoutPath>
+      <PathWithFileName>.\LED.h</PathWithFileName>
+      <FilenameWithoutPath>LED.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
     <File>
       <GroupNumber>2</GroupNumber>
       <FileNumber>10</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\KDB.h</PathWithFileName>
+      <FilenameWithoutPath>KDB.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>11</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\GLCD.h</PathWithFileName>
+      <FilenameWithoutPath>GLCD.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>12</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
@@ -372,7 +389,7 @@
     </File>
     <File>
       <GroupNumber>2</GroupNumber>
-      <FileNumber>11</FileNumber>
+      <FileNumber>13</FileNumber>
       <FileType>5</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
@@ -381,8 +398,40 @@
       <TopLine>0</TopLine>
       <CurrentLine>0</CurrentLine>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\KDB.h</PathWithFileName>
-      <FilenameWithoutPath>KDB.h</FilenameWithoutPath>
+      <PathWithFileName>.\Font_16x24_h.h</PathWithFileName>
+      <FilenameWithoutPath>Font_16x24_h.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>14</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\Font_6x8_h.h</PathWithFileName>
+      <FilenameWithoutPath>Font_6x8_h.h</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>15</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\ADC.h</PathWithFileName>
+      <FilenameWithoutPath>ADC.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

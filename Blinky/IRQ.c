@@ -39,7 +39,7 @@ void SysTick_Handler (void) {
     timetick   = 0;
     leds     <<= 1;
     if (leds > (1 << LED_NUM)) leds = 0x01;
-    LED_Out (leds);
+    //LED_Out (leds);
   }
 
   ADC_StartCnv();

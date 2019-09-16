@@ -43,7 +43,7 @@ int fputc(int ch, FILE *f) {
 
 char adc_value[16];
 char string[20];
-char joystick_value[6];
+char joystick_value[10];
 
 //Use to trace the pot values in Debug
 uint16_t ADC_Dbg;
@@ -61,7 +61,9 @@ int main (void) {
 
   LED_Init();                                /* LED Initialization            */
   ADC_Init();                                /* ADC Initialization            */
-  JOYSTICK_Init();                           /* JOYSTICK Initialization       */
+  KDB_Init();																 /* KDB Initialization						*/
+	JOYSTICK_Init();                           /* JOYSTICK Initialization       */
+	
 
 #ifdef __USE_LCD
   GLCD_Init();                               /* Initialize graphical LCD (if enabled */
@@ -69,10 +71,10 @@ int main (void) {
   GLCD_Clear(White);                         /* Clear graphical LCD display   */
   GLCD_SetBackColor(Blue);
   GLCD_SetTextColor(Yellow);
-  GLCD_DisplayString(0, 0, __FI, "     COE718 Demo    ");
+  GLCD_DisplayString(0, 0, __FI, (unsigned char *)"     COE718 Demo    ");
 	GLCD_SetTextColor(White);
-  GLCD_DisplayString(1, 0, __FI, "       Blinky.c     ");
-  GLCD_DisplayString(2, 0, __FI, "  Turn pot for LEDs ");
+  GLCD_DisplayString(1, 0, __FI, (unsigned char *)"       Blinky.c     ");
+  GLCD_DisplayString(2, 0, __FI, (unsigned char *)"       Something    ");
   GLCD_SetBackColor(White);
   GLCD_SetTextColor(Blue);
 
@@ -100,23 +102,19 @@ int main (void) {
         ad_val_ = ad_val;
 
         sprintf(adc_value, "0x%04X", ad_val);       /* format text for print out     */
-
-#ifdef __USE_LCD
-        GLCD_SetTextColor(Red);
-        GLCD_DisplayString(6, 9, __FI, (unsigned char *) adc_value);
-        GLCD_SetTextColor(Green);
-        GLCD_Bargraph(144, 7 * 24, 176, 20, (ad_val >> 2)); /* max bargraph is 10 bit */
-#endif
     }
+		strcpy(string, "ADC: ");
+		strcat(string, adc_value);
+    GLCD_DisplayString(6, 0, __FI, (unsigned char*)string);
     /* Print message with AD value every 10 ms                               */
     if (clock_ms) {
       clock_ms = 0;
-
+			
       printf("AD value: %s\r\n", adc_value);
     }
        /* Update Joystick value and displays*/
-    LED_Clear();//clear the LEDs
     strcpy(joystick_value, JOYSTICK_Update());
+		strcpy(string, "Joy Value: ");
 		if(strcmp(joystick_value, JOYSTICK_UP)){
 			LED_On(LED_UP);
 		}else if(strcmp(joystick_value, JOYSTICK_DOWN)){
@@ -128,8 +126,7 @@ int main (void) {
 		}else if(strcmp(joystick_value, JOYSTICK_SELECT)){
 			LED_On(LED_SELECT);
 		}
-		strcpy(string, "Joy Value: ");
-    strcat(string, JOYSTICK_Update());
+    strcat(string, joystick_value);
     GLCD_DisplayString(7, 0, __FI, (unsigned char*)string);
 
   }

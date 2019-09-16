@@ -19,10 +19,10 @@
 #include <stdint.h>
 
 #define LED_UP (1<<2)
-#define LED_DOWN (1<<4)
-#define LED_LEFT (1<<5)
-#define LED_RIGHT (1<<6)
-#define LED_SELECT (1<<29)
+#define LED_DOWN (1<<3)
+#define LED_LEFT (1<<4)
+#define LED_RIGHT (1<<5)
+#define LED_SELECT (1<<6)
 
 
 /* LED Definitions */
@@ -33,6 +33,7 @@ extern void LED_On  (uint32_t val);
 extern void LED_Off (uint32_t val);
 extern void LED_Clear(void);
 extern uint32_t LED_Get_On(void);
+extern void LED_Out(unsigned int value);
 //extern void LED_Out (unsigned int value);
 /*
  * I could not figure out what this was to be used for,
