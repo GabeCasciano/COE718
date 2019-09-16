@@ -7,10 +7,11 @@
 
 
 #include <stdint.h>
+#include <string.h>
 #include "Joystick.h"
 #include "KDB.h"
 
-char[6] JOYSTICK_val;
+char JOYSTICK_val[6];
 uint32_t KBD_neutral = 0x0000;
 
 /**JOYSTICK_getNeutral
@@ -24,7 +25,6 @@ void JOYSTICK_getNeutral(void){
  * Used to Init KDB, and get initial values
  */
 void JOYSTICK_Init(void){
-    KBD_Init();
     JOYSTICK_getNeutral();
 }
 
@@ -36,19 +36,19 @@ void JOYSTICK_Init(void){
  *
  * @return JOYSTICK_val -> type char -> The current value of joystick
  */
-char[] JOYSTICK_Update(void){
+char* JOYSTICK_Update(void){
     uint32_t temp = KDB_button() ;
     if(temp == KBD_neutral) {
         if ((temp & KDB_UP) == KDB_UP) {
-            JOYSTICK_val = JOYSTICK_UP;
+            strcpy(JOYSTICK_val, JOYSTICK_UP);
         } else if ((temp & KDB_DOWN) == KDB_DOWN) {
-            JOYSTICK_val = JOYSTICK_DOWN;
+            strcpy(JOYSTICK_val, JOYSTICK_DOWN);
         } else if ((temp & KDB_LEFT) == KDB_LEFT) {
-            JOYSTICK_val = JOYSTICK_LEFT;
+            strcpy(JOYSTICK_val, JOYSTICK_LEFT);
         } else if ((temp & KDB_RIGHT) == KDB_RIGHT) {
-            JOYSTICK_val = JOYSTICK_RIGHT;
+            strcpy(JOYSTICK_val, JOYSTICK_RIGHT);
         } else if ((temp & KDB_SELECT) == KDB_SELECT) {
-            JOYSTICK_val = JOYSTICK_SELECT;
+            strcpy(JOYSTICK_val, JOYSTICK_SELECT);
         }
     }
 

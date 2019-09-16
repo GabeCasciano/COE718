@@ -9,10 +9,12 @@
  *----------------------------------------------------------------------------*/
 
 #include <stdio.h>
+#include <string.h>
 #include "LPC17xx.H"                       
 #include "GLCD.h"
 #include "LED.h"
 #include "ADC.h"
+#include "KDB.h"
 #include "Joystick.h"
 
 #define __FI        1                      /* Font index 16x24               */
@@ -101,7 +103,7 @@ int main (void) {
 
 #ifdef __USE_LCD
         GLCD_SetTextColor(Red);
-        GLCD_DisplayString(6, 9, __FI, (unsigned char *) text);
+        GLCD_DisplayString(6, 9, __FI, (unsigned char *) adc_value);
         GLCD_SetTextColor(Green);
         GLCD_Bargraph(144, 7 * 24, 176, 20, (ad_val >> 2)); /* max bargraph is 10 bit */
 #endif
@@ -110,40 +112,25 @@ int main (void) {
     if (clock_ms) {
       clock_ms = 0;
 
-      printf("AD value: %s\r\n", text);
+      printf("AD value: %s\r\n", adc_value);
     }
-    /* Display ADC value */
-    string = "AD value: ";
-    strcat(string, adc_value);
-    GLCD_DisplayString(6, 0, __FI, string);
-
-    /* Update Joystick value and displays*/
+       /* Update Joystick value and displays*/
     LED_Clear();//clear the LEDs
-    switch(updateJoystickValue()){
-        case JOYSTICK_UP:
-            joystick_value = "up";
-            LED_On(LED_UP);
-            break;
-        case JOYSTICK_DOWN:
-            joystick_value = "down";
-            LED_On(LED_DOWN);
-            break;
-        case JOYSTICK_LEFT:
-            joystick_value = "left";
-            LED_On(LED_LEFT);
-            break;
-        case JOYSTICK_RIGHT:
-            joystick_value = "right";
-            LED_On(LED_RIGHT);
-            break;
-        case SELECT:
-            joystick_value = "select";
-            LED_On(LED_SELECT);
-            break;
-    }
-    string = "Joy value: ";
-    strcat(string, joystick_value);
-    GLCD_DisplayString(7, 0, __FI, string);
+    strcpy(joystick_value, JOYSTICK_Update());
+		if(strcmp(joystick_value, JOYSTICK_UP)){
+			LED_On(LED_UP);
+		}else if(strcmp(joystick_value, JOYSTICK_DOWN)){
+			LED_On(LED_DOWN);
+		}else if(strcmp(joystick_value, JOYSTICK_LEFT)){
+			LED_On(LED_LEFT);
+		}else if(strcmp(joystick_value, JOYSTICK_RIGHT)){
+			LED_On(LED_RIGHT);
+		}else if(strcmp(joystick_value, JOYSTICK_SELECT)){
+			LED_On(LED_SELECT);
+		}
+		strcpy(string, "Joy Value: ");
+    strcat(string, JOYSTICK_Update());
+    GLCD_DisplayString(7, 0, __FI, (unsigned char*)string);
 
   }
 }

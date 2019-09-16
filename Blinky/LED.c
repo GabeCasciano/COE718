@@ -9,6 +9,8 @@ void LED_Init(void){
 	LPC_SC->PCONP |= (1<<15);
 	LPC_PINCON->PINSEL3 |= ~(3<<26);
 	LPC_PINCON->PINSEL4 |= ~((3<<2)|(63<<4));
+	LPC_GPIO1->FIODIR &= ~(LED_SELECT);
+	LPC_GPIO2->FIODIR &= ~(LED_UP|LED_DOWN|LED_RIGHT|LED_LEFT);
 }
 
 /**LED_On
@@ -20,19 +22,19 @@ void LED_Init(void){
 void LED_On(uint32_t val){
     switch(val){
         case LED_UP:
-            LPC_GPIO2->FIOSET = LED_UP;
+            LPC_GPIO2->FIOSET |= LED_UP;
             break;
         case LED_RIGHT:
-            LPC_GPIO2->FIOSET = LED_RIGHT;
+            LPC_GPIO2->FIOSET |= LED_RIGHT;
             break;
         case LED_DOWN:
-            LPC_GPIO2->FIOSET = LED_DOWN;
+            LPC_GPIO2->FIOSET |= LED_DOWN;
             break;
         case LED_LEFT:
-            LPC_GPIO2->FIOSET = LED_LEFT;
+            LPC_GPIO2->FIOSET |= LED_LEFT;
             break;
-        case LED_SELECT;
-            LPC_GPIO1->FIOSET = LED_SELECT;
+        case LED_SELECT:
+            LPC_GPIO1->FIOSET |= LED_SELECT;
             break;
     }
 }
@@ -44,22 +46,22 @@ void LED_On(uint32_t val){
  * @param val -> type uint32_t -> which LED to turn off
  */
 
-void LED_Off(LED_LED_SELECT val){
+void LED_Off(uint32_t val){
     switch(val){
         case LED_UP:
-            LPC_GPIO2->FIOCLR = LED_UP;
+            LPC_GPIO2->FIOCLR |= LED_UP;
             break;
         case LED_RIGHT:
-            LPC_GPIO2->FIOCLR = LED_RIGHT;
+            LPC_GPIO2->FIOCLR |= LED_RIGHT;
             break;
         case LED_DOWN:
-            LPC_GPIO2->FIOCLR = LED_DOWN;
+            LPC_GPIO2->FIOCLR |= LED_DOWN;
             break;
         case LED_LEFT:
-            LPC_GPIO2->FIOCLR = LED_LEFT;
+            LPC_GPIO2->FIOCLR |= LED_LEFT;
             break;
-        case LED_SELECT;
-            LPC_GPIO1->FIOCLR = LED_SELECT;
+        case LED_SELECT:
+            LPC_GPIO1->FIOCLR |= LED_SELECT;
             break;
     }
 }
@@ -70,18 +72,19 @@ void LED_Off(LED_LED_SELECT val){
  *
  * @return byte for which LED is currently on
  */
-uint8_t LED_Get_On(void) {
-    if ((LPC_GPIO3->FIOPIN && LED_UP) == LED_UP) {
+uint32_t LED_Get_On(void) {
+    if ((LPC_GPIO3->FIOPIN & LED_UP) == LED_UP) {
         return LED_UP;
-    } else if ((LPC_GPIO3->FIOPIN && LED_RIGHT) == LED_RIGHT) {
+    } else if ((LPC_GPIO3->FIOPIN & LED_RIGHT) == LED_RIGHT) {
         return LED_RIGHT;
-    } else if ((LPC_GPIO3->FIOPIN && LED_DOWN) == LED_DOWN) {
+    } else if ((LPC_GPIO3->FIOPIN & LED_DOWN) == LED_DOWN) {
         return LED_DOWN;
-    } else if((LPC_GPIO2->FIOPIN && LED_LEFT) == LED_LEFT){
+    } else if((LPC_GPIO2->FIOPIN & LED_LEFT) == LED_LEFT){
         return LED_DOWN;
-    } else if((LPC_GPIO1->FIOPIN && LED_SELECT) == LED_SELECT){
+    } else if((LPC_GPIO1->FIOPIN & LED_SELECT) == LED_SELECT){
         return LED_SELECT;
     }
+		return 0;
 }
 
 
@@ -90,7 +93,6 @@ uint8_t LED_Get_On(void) {
  * Use to turn all of the LEDs off
  */
 void LED_Clear(void){
-    LPC_GPIO2->FIOCLR = LED_UP|LED_RIGHT|LED_DOWN|LED_LEFT;
-    LPC_GPIO1->FIOCLR = LED_SELECT;
-
+    LPC_GPIO2->FIOCLR |= LED_UP|LED_RIGHT|LED_DOWN|LED_LEFT;
+    LPC_GPIO1->FIOCLR |= LED_SELECT;
 }

@@ -8,6 +8,8 @@
 #ifndef __JOYSTICK_H
 #define __JOYSTICK_H
 
+#include "KDB.h"
+
 #define JOYSTICK_UP "UP"
 #define JOYSTICK_DOWN "DOWN"
 #define JOYSTICK_LEFT "LEFT"
@@ -15,9 +17,9 @@
 #define JOYSTICK_SELECT "SELECT"
 
 extern uint32_t joyStickValue;
-extern void JOYSTICK_Init();
+extern void JOYSTICK_Init(void);
 extern void getNeutral(void);
-extern uint32_t JOYSTICK_Update(void);
+extern char* JOYSTICK_Update(void);
 
 
 #endif //_JOYSTICK_H
