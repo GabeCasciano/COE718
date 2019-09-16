@@ -1,19 +1,23 @@
-//
-// Created by gabriel on 2019-09-11.
-//
+/*----------------------------------------------------------------------------
+ * Name:    Joystick.h
+ * Purpose: definitions for the joystick library
+ * Note(s):
+ *----------------------------------------------------------------------------
+ */
 
 #ifndef __JOYSTICK_H
 #define __JOYSTICK_H
 
-#define UP 0x1;
-#define DOWN 0x2;
-#define LEFT 0x3;
-#define RIGHT 0x4;
-#define SELECT 0X5;
+#define JOYSTICK_UP "UP"
+#define JOYSTICK_DOWN "DOWN"
+#define JOYSTICK_LEFT "LEFT"
+#define JOYSTICK_RIGHT "RIGHT"
+#define JOYSTICK_SELECT "SELECT"
 
 extern uint32_t joyStickValue;
-
-extern uint32_t updateJoystickValue(void);
+extern void JOYSTICK_Init();
+extern void getNeutral(void);
+extern uint32_t JOYSTICK_Update(void);
 
 
 #endif //_JOYSTICK_H
