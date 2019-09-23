@@ -119,7 +119,7 @@
             <Oh166RecLen>16</Oh166RecLen>
           </OPTHX>
           <Simulator>
-            <UseSimulator>1</UseSimulator>
+            <UseSimulator>0</UseSimulator>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
             <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
@@ -131,7 +131,7 @@
             <RestoreSysVw>1</RestoreSysVw>
           </Simulator>
           <Target>
-            <UseTarget>0</UseTarget>
+            <UseTarget>1</UseTarget>
             <LoadApplicationAtStartup>1</LoadApplicationAtStartup>
             <RunToMain>1</RunToMain>
             <RestoreBreakpoints>1</RestoreBreakpoints>
@@ -141,7 +141,7 @@
             <RestoreToolbox>1</RestoreToolbox>
             <RestoreTracepoints>1</RestoreTracepoints>
             <RestoreSysVw>1</RestoreSysVw>
-            <UsePdscDebugDescription>1</UsePdscDebugDescription>
+            <UsePdscDebugDescription>0</UsePdscDebugDescription>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
           <TargetSelection>1</TargetSelection>
@@ -290,17 +290,17 @@
                 <Size>0x0</Size>
               </XRAM>
               <OCR_RVCT1>
-                <Type>0</Type>
+                <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
                 <Size>0x0</Size>
               </OCR_RVCT1>
               <OCR_RVCT2>
-                <Type>0</Type>
+                <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
                 <Size>0x0</Size>
               </OCR_RVCT2>
               <OCR_RVCT3>
-                <Type>0</Type>
+                <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
                 <Size>0x0</Size>
               </OCR_RVCT3>
@@ -310,7 +310,7 @@
                 <Size>0x80000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
-                <Type>0</Type>
+                <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
                 <Size>0x0</Size>
               </OCR_RVCT5>
@@ -362,7 +362,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>..\Blinky</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -379,7 +379,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>..\Blinky</IncludePath>
             </VariousControls>
           </Aads>
           <LDads>
@@ -410,6 +410,11 @@
               <FileType>2</FileType>
               <FilePath>.\startup_LPC17xx.s</FilePath>
             </File>
+            <File>
+              <FileName>system_LPC17xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\system_LPC17xx.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -431,11 +436,6 @@
               <FilePath>.\Joystick.c</FilePath>
             </File>
             <File>
-              <FileName>IRQ.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\IRQ.c</FilePath>
-            </File>
-            <File>
               <FileName>Blinky.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Blinky.c</FilePath>
@@ -451,19 +451,9 @@
               <FilePath>.\ADC.c</FilePath>
             </File>
             <File>
-              <FileName>LED.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\LED.h</FilePath>
-            </File>
-            <File>
-              <FileName>KDB.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\KDB.h</FilePath>
-            </File>
-            <File>
-              <FileName>GLCD.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\GLCD.h</FilePath>
+              <FileName>IRQ.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\IRQ.c</FilePath>
             </File>
             <File>
               <FileName>Joystick.h</FileName>
@@ -471,19 +461,9 @@
               <FilePath>.\Joystick.h</FilePath>
             </File>
             <File>
-              <FileName>Font_16x24_h.h</FileName>
+              <FileName>KDB.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Font_16x24_h.h</FilePath>
-            </File>
-            <File>
-              <FileName>Font_6x8_h.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Font_6x8_h.h</FilePath>
-            </File>
-            <File>
-              <FileName>ADC.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\ADC.h</FilePath>
+              <FilePath>.\KDB.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -45,6 +45,10 @@ char adc_value[16];
 char string[20];
 char joystick_value[10];
 
+const unsigned long led_mask1[] = { 1UL<<28, 1UL<<29, 1UL<<31, 1UL<< 2,
+
+                                   1UL<< 3, 1UL<< 4, 1UL<< 5, 1UL<< 6 };
+
 //Use to trace the pot values in Debug
 uint16_t ADC_Dbg;
 
@@ -113,18 +117,19 @@ int main (void) {
       printf("AD value: %s\r\n", adc_value);
     }
        /* Update Joystick value and displays*/
+		
     strcpy(joystick_value, JOYSTICK_Update());
     strcpy(string, "Joy Value: ");
 	if(strcmp(joystick_value, JOYSTICK_UP)){
-		LED_On(LED_UP);
+		LED_Out(1);
 	}else if(strcmp(joystick_value, JOYSTICK_DOWN)){
-		LED_On(LED_DOWN);
+		LED_Out(2);
 	}else if(strcmp(joystick_value, JOYSTICK_LEFT)){
-		LED_On(LED_LEFT);
+		LED_Out(3);
 	}else if(strcmp(joystick_value, JOYSTICK_RIGHT)){
-		LED_On(LED_RIGHT);
+		LED_Out(4);
 	}else if(strcmp(joystick_value, JOYSTICK_SELECT)){
-		LED_On(LED_SELECT);
+		LED_Out(5);
 	}
     strcat(string, joystick_value);
     GLCD_DisplayString(7, 0, __FI, (unsigned char*)string);

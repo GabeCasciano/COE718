@@ -456,14 +456,14 @@
               <FilePath>.\IRQ.c</FilePath>
             </File>
             <File>
-              <FileName>Joystick.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Joystick.h</FilePath>
-            </File>
-            <File>
               <FileName>KDB.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\KDB.h</FilePath>
+            </File>
+            <File>
+              <FileName>LED.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\LED.h</FilePath>
             </File>
           </Files>
         </Group>

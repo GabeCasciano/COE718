@@ -1,108 +1,129 @@
-#include "LPC17xx.H" 
+/*----------------------------------------------------------------------------
+
+
+
+ * Name:    LED.c
+
+ * Purpose: low level LED functions
+
+ * Note(s):
+
+ *----------------------------------------------------------------------------
+
+ * This file is part of the uVision/ARM development tools.
+
+ * This software may only be used under the terms of a valid, current,
+
+ * end user licence from KEIL for a compatible version of KEIL software
+
+ * development tools. Nothing else gives you the right to use this software.
+
+ *
+
+ * This software is supplied "AS IS" without warranties of any kind.
+
+ *
+
+ * Copyright (c) 2009-2011 Keil - An ARM Company. All rights reserved.
+
+ *----------------------------------------------------------------------------*/
+
+
+
+#include "LPC17xx.H"                         /* LPC17xx definitions           */
+
 #include "LED.h"
 
-/**LED_Init
- *
- * Use to init the LEDs
- */
-void LED_Init(void){
-	LPC_SC->PCONP |= (1<<15);
-	LPC_PINCON->PINSEL4 &= ~(0xFFC);
-	LPC_GPIO2->FIODIR &= ~(LED_UP|LED_DOWN|LED_RIGHT|LED_LEFT|LED_SELECT);//output
-    LPC_GPIO2->FIOCLR |= ~(LED_UP|LED_DOWN|LED_RIGHT|LED_LEFT|LED_SELECT);//clr
-}
 
-/**LED_On
- *
- * Use to turn a specific LED on
- *
- * @param val -> type uint32_t -> which LED to turn on
- */
-void LED_On(uint32_t val){
-    switch(val){
-        case LED_UP:
-            LPC_GPIO2->FIOSET |= LED_UP;
-            break;
-        case LED_RIGHT:
-            LPC_GPIO2->FIOSET |= LED_RIGHT;
-            break;
-        case LED_DOWN:
-            LPC_GPIO2->FIOSET |= LED_DOWN;
-            break;
-        case LED_LEFT:
-            LPC_GPIO2->FIOSET |= LED_LEFT;
-            break;
-        case LED_SELECT:
-            LPC_GPIO1->FIOSET |= LED_SELECT;
-            break;
-    }
-}
 
-/**LED_Off
- *
- * Use to turn a specific LED off
- *
- * @param val -> type uint32_t -> which LED to turn off
- */
+const unsigned long led_mask[] = { 1UL<<28, 1UL<<29, 1UL<<31, 1UL<< 2,
 
-void LED_Off(uint32_t val){
-    switch(val){
-        case LED_UP:
-            LPC_GPIO2->FIOCLR |= ~LED_UP;
-            break;
-        case LED_RIGHT:
-            LPC_GPIO2->FIOCLR |= ~LED_RIGHT;
-            break;
-        case LED_DOWN:
-            LPC_GPIO2->FIOCLR |= ~LED_DOWN;
-            break;
-        case LED_LEFT:
-            LPC_GPIO2->FIOCLR |= ~LED_LEFT;
-            break;
-        case LED_SELECT:
-            LPC_GPIO1->FIOCLR |= ~LED_SELECT;
-            break;
-    }
-}
+                                   1UL<< 3, 1UL<< 4, 1UL<< 5, 1UL<< 6 };
 
-/**LED_Get_On
- *
- * Use to get which LED is currently On
- *
- * @return byte for which LED is currently on
- */
-uint32_t LED_Get_On(void) {
-    if ((LPC_GPIO3->FIOPIN & LED_UP) == LED_UP) {
-        return LED_UP;
-    } else if ((LPC_GPIO3->FIOPIN & LED_RIGHT) == LED_RIGHT) {
-        return LED_RIGHT;
-    } else if ((LPC_GPIO3->FIOPIN & LED_DOWN) == LED_DOWN) {
-        return LED_DOWN;
-    } else if((LPC_GPIO2->FIOPIN & LED_LEFT) == LED_LEFT){
-        return LED_DOWN;
-    } else if((LPC_GPIO1->FIOPIN & LED_SELECT) == LED_SELECT){
-        return LED_SELECT;
-    }
-		return 0;
+/*----------------------------------------------------------------------------
+
+  initialize LED Pins
+
+ *----------------------------------------------------------------------------*/
+
+
+
+void LED_Init (void) {
+
+
+
+  LPC_SC->PCONP     |= (1 << 15);            /* enable power to GPIO & IOCON  */
+
+
+
+  LPC_GPIO1->FIODIR |= 0xB0000000;           /* LEDs on PORT1 are output      */
+
+  LPC_GPIO2->FIODIR |= 0x0000007C;           /* LEDs on PORT2 are output      */
+
 }
 
 
-/**LED_Clear
- *
- * Use to turn all of the LEDs off
- */
-void LED_Clear(void){
-    LPC_GPIO2->FIOCLR |= ~(LED_UP|LED_DOWN|LED_RIGHT|LED_LEFT|LED_SELECT);//clr
+
+/*----------------------------------------------------------------------------
+
+  Function that turns on requested LED
+
+ *----------------------------------------------------------------------------*/
+
+void LED_On (unsigned int num) {
+
+
+
+  if (num < 3) LPC_GPIO1->FIOPIN |=  led_mask[num];
+
+  else         LPC_GPIO2->FIOPIN |=  led_mask[num];
+
 }
+
+
+
+/*----------------------------------------------------------------------------
+
+  Function that turns off requested LED
+
+ *----------------------------------------------------------------------------*/
+
+void LED_Off (unsigned int num) {
+
+
+
+  if (num < 3) LPC_GPIO1->FIOPIN &= ~led_mask[num];
+
+  else         LPC_GPIO2->FIOPIN &= ~led_mask[num];
+
+}
+
+
+
+/*----------------------------------------------------------------------------
+
+  Function that outputs value to LEDs
+
+ *----------------------------------------------------------------------------*/
 
 void LED_Out(unsigned int value) {
+
   int i;
 
+
+
   for (i = 0; i < LED_NUM; i++) {
-    if (value & (1<<i)) {
+
+    if (value == i) {
+
       LED_On (i);
+
     } else {
+
       LED_Off(i);
+
     }
+
   }
+
 }
