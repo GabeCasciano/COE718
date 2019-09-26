@@ -121,15 +121,15 @@ int main (void) {
     strcpy(joystick_value, JOYSTICK_Update());
     strcpy(string, "Joy Value: ");
 	if(strcmp(joystick_value, JOYSTICK_UP)){
-		LED_Out(1);
+		LED_Out(0);
 	}else if(strcmp(joystick_value, JOYSTICK_DOWN)){
-		LED_Out(2);
+		LED_Out(1);
 	}else if(strcmp(joystick_value, JOYSTICK_LEFT)){
-		LED_Out(3);
+		LED_Out(2);
 	}else if(strcmp(joystick_value, JOYSTICK_RIGHT)){
-		LED_Out(4);
+		LED_Out(3);
 	}else if(strcmp(joystick_value, JOYSTICK_SELECT)){
-		LED_Out(5);
+		LED_Out(4);
 	}
     strcat(string, joystick_value);
     GLCD_DisplayString(7, 0, __FI, (unsigned char*)string);

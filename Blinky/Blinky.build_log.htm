@@ -4,12 +4,19 @@
 <h1>µVision Build Log</h1>
 <h2>Project:</h2>
 S:\COE718\Blinky\Blinky.uvproj
-Project File Date:  09/16/2019
+Project File Date:  09/23/2019
 
 <h2>Output:</h2>
-Build target 'Target 1'
+Rebuild target 'Target 1'
+assembling startup_LPC17xx.s...
+compiling system_LPC17xx.c...
+compiling KDB.c...
 compiling LED.c...
+compiling Joystick.c...
 compiling Blinky.c...
+compiling GLCD_SPI_LPC1700.c...
+compiling ADC.c...
+compiling IRQ.c...
 linking...
 Program Size: Code=6932 RO-data=6600 RW-data=52 ZI-data=660  
 ".\Blinky.axf" - 0 Error(s), 0 Warning(s).
@@ -20,25 +27,3 @@ Verify OK.
 </pre>
 </body>
 </html>
-.
-".\Blinky.axf" - 1 Error(s), 0 Warning(s).
-Target not created
-c(126): error:  #20: identifier "led_mask" is undefined
-                LED_Out(led_mask[4]);
-Blinky.c(128): error:  #20: identifier "led_mask" is undefined
-                LED_Out(led_mask[5]);
-Blinky.c: 0 warnings, 5 errors
-".\Blinky.axf" - 5 Error(s), 0 Warning(s).
-Target not created
-       LED_On(LED_SELECT);
-Blinky.c: 0 warnings, 5 errors
-compiling IRQ.c...
-".\Blinky.axf" - 5 Error(s), 1 Warning(s).
-Target not created
-compiling LED.c...
-LED.c(133): error:  #29: expected an expression
-        for(int i = 0; i < LED_NUM; i++){
-LED.c(133): error:  #20: identifier "i" is undefined
-        for(int i = 0; i < LED_NUM; i++){
-LED.c: 0 warnings, 2 errors
-"LED.c" - 2 Error(s), 0 Warning(s).
