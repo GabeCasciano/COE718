@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>KDB.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bbb529;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6897bb;}
+.s3 { color: #cc7832;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+KDB.h</font>
+</center></td></tr></table>
+<pre><span class="s0">#ifndef </span><span class="s1">__KDB_H</span>
+<span class="s0">#define </span><span class="s1">__KDB_H</span>
+
+<span class="s0">#define </span><span class="s1">KDB_SELECT  </span><span class="s2">0x01</span>
+<span class="s0">#define </span><span class="s1">KDB_UP      </span><span class="s2">0x08</span>
+<span class="s0">#define </span><span class="s1">KDB_RIGHT   </span><span class="s2">0x10</span>
+<span class="s0">#define </span><span class="s1">KDB_DOWN    </span><span class="s2">0x20</span>
+<span class="s0">#define </span><span class="s1">KDB_LEFT    </span><span class="s2">0X40</span>
+<span class="s0">#define </span><span class="s1">KDB_MASK    </span><span class="s2">0x79</span>
+
+<span class="s3">extern </span><span class="s1">uint32_t KDB_val</span><span class="s3">;</span>
+
+<span class="s3">extern void </span><span class="s1">KDB_Init (</span><span class="s3">void</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">extern </span><span class="s1">uint32_t KDB_get(</span><span class="s3">void</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s3">extern </span><span class="s1">uint32_t KDB_button(</span><span class="s3">void</span><span class="s1">)</span><span class="s3">;</span>
+<span class="s0">#endif </span><span class="s4">//__KDB_H</span>
+</pre>
+</body>
+</html>

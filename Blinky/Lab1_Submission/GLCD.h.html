@@ -1,0 +1,80 @@
+<html>
+<head>
+<title>GLCD.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bbb529;}
+.s3 { color: #6897bb;}
+.s4 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+GLCD.h</font>
+</center></td></tr></table>
+<pre><span class="s0">/******************************************************************************/</span>
+<span class="s0">/* GLCD.h: Graphic LCD function prototypes and defines                        */</span>
+<span class="s0">/******************************************************************************/</span>
+<span class="s0">/* This file is part of the uVision/ARM development tools.                    */</span>
+<span class="s0">/* Copyright (c) 2005-2011 Keil - An ARM Company. All rights reserved.        */</span>
+<span class="s0">/* This software may only be used under the terms of a valid, current,        */</span>
+<span class="s0">/* end user licence from KEIL for a compatible version of KEIL software       */</span>
+<span class="s0">/* development tools. Nothing else gives you the right to use this software.  */</span>
+<span class="s0">/******************************************************************************/</span>
+
+<span class="s2">#ifndef </span><span class="s1">_GLCD_H</span>
+<span class="s2">#define </span><span class="s1">_GLCD_H</span>
+
+<span class="s0">/*------------------------------------------------------------------------------ 
+  Color coding 
+  GLCD is coded:   15..11 red, 10..5 green, 4..0 blue  (unsigned short)  GLCD_R5, GLCD_G6, GLCD_B5    
+  original coding: 17..12 red, 11..6 green, 5..0 blue                    ORG_R6,  ORG_G6,  ORG_B6 
+ 
+  ORG_R1..5 = GLCD_R0..4,  ORG_R0 = GLCD_R4 
+  ORG_G0..5 = GLCD_G0..5, 
+  ORG_B1..5 = GLCD_B0..4,  ORG_B0 = GLCD_B4 
+ *----------------------------------------------------------------------------*/</span>
+                            
+<span class="s0">/* GLCD RGB color definitions                                                 */</span>
+<span class="s2">#define </span><span class="s1">Black           </span><span class="s3">0x0000      </span><span class="s0">/*   0,   0,   0 */</span>
+<span class="s2">#define </span><span class="s1">Navy            </span><span class="s3">0x000F      </span><span class="s0">/*   0,   0, 128 */</span>
+<span class="s2">#define </span><span class="s1">DarkGreen       </span><span class="s3">0x03E0      </span><span class="s0">/*   0, 128,   0 */</span>
+<span class="s2">#define </span><span class="s1">DarkCyan        </span><span class="s3">0x03EF      </span><span class="s0">/*   0, 128, 128 */</span>
+<span class="s2">#define </span><span class="s1">Maroon          </span><span class="s3">0x7800      </span><span class="s0">/* 128,   0,   0 */</span>
+<span class="s2">#define </span><span class="s1">Purple          </span><span class="s3">0x780F      </span><span class="s0">/* 128,   0, 128 */</span>
+<span class="s2">#define </span><span class="s1">Olive           </span><span class="s3">0x7BE0      </span><span class="s0">/* 128, 128,   0 */</span>
+<span class="s2">#define </span><span class="s1">LightGrey       </span><span class="s3">0xC618      </span><span class="s0">/* 192, 192, 192 */</span>
+<span class="s2">#define </span><span class="s1">DarkGrey        </span><span class="s3">0x7BEF      </span><span class="s0">/* 128, 128, 128 */</span>
+<span class="s2">#define </span><span class="s1">Blue            </span><span class="s3">0x001F      </span><span class="s0">/*   0,   0, 255 */</span>
+<span class="s2">#define </span><span class="s1">Green           </span><span class="s3">0x07E0      </span><span class="s0">/*   0, 255,   0 */</span>
+<span class="s2">#define </span><span class="s1">Cyan            </span><span class="s3">0x07FF      </span><span class="s0">/*   0, 255, 255 */</span>
+<span class="s2">#define </span><span class="s1">Red             </span><span class="s3">0xF800      </span><span class="s0">/* 255,   0,   0 */</span>
+<span class="s2">#define </span><span class="s1">Magenta         </span><span class="s3">0xF81F      </span><span class="s0">/* 255,   0, 255 */</span>
+<span class="s2">#define </span><span class="s1">Yellow          </span><span class="s3">0xFFE0      </span><span class="s0">/* 255, 255, 0   */</span>
+<span class="s2">#define </span><span class="s1">White           </span><span class="s3">0xFFFF      </span><span class="s0">/* 255, 255, 255 */</span>
+
+<span class="s4">extern void </span><span class="s1">GLCD_Init           (</span><span class="s4">void</span><span class="s1">)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_WindowMax      (</span><span class="s4">void</span><span class="s1">)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_PutPixel       (</span><span class="s4">unsigned int </span><span class="s1">x</span><span class="s4">, unsigned int </span><span class="s1">y)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_SetTextColor   (</span><span class="s4">unsigned short </span><span class="s1">color)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_SetBackColor   (</span><span class="s4">unsigned short </span><span class="s1">color)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_Clear          (</span><span class="s4">unsigned short </span><span class="s1">color)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_DrawChar       (</span><span class="s4">unsigned int </span><span class="s1">x</span><span class="s4">,  unsigned int </span><span class="s1">y</span><span class="s4">, unsigned int </span><span class="s1">cw</span><span class="s4">, unsigned int </span><span class="s1">ch</span><span class="s4">, unsigned char </span><span class="s1">*c)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_DisplayChar    (</span><span class="s4">unsigned int </span><span class="s1">ln</span><span class="s4">, unsigned int </span><span class="s1">col</span><span class="s4">, unsigned char </span><span class="s1">fi</span><span class="s4">, unsigned char  </span><span class="s1">c)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_DisplayString  (</span><span class="s4">unsigned int </span><span class="s1">ln</span><span class="s4">, unsigned int </span><span class="s1">col</span><span class="s4">, unsigned char </span><span class="s1">fi</span><span class="s4">, unsigned char </span><span class="s1">*s)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_ClearLn        (</span><span class="s4">unsigned int </span><span class="s1">ln</span><span class="s4">, unsigned char </span><span class="s1">fi)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_Bargraph       (</span><span class="s4">unsigned int </span><span class="s1">x</span><span class="s4">,  unsigned int </span><span class="s1">y</span><span class="s4">, unsigned int </span><span class="s1">w</span><span class="s4">, unsigned int </span><span class="s1">h</span><span class="s4">, unsigned int </span><span class="s1">val)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_Bitmap         (</span><span class="s4">unsigned int </span><span class="s1">x</span><span class="s4">,  unsigned int </span><span class="s1">y</span><span class="s4">, unsigned int </span><span class="s1">w</span><span class="s4">, unsigned int </span><span class="s1">h</span><span class="s4">, unsigned char </span><span class="s1">*bitmap)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_ScrollVertical (</span><span class="s4">unsigned int </span><span class="s1">dy)</span><span class="s4">;</span>
+
+<span class="s4">extern void </span><span class="s1">GLCD_WrCmd          (</span><span class="s4">unsigned char </span><span class="s1">cmd)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">GLCD_WrReg          (</span><span class="s4">unsigned char </span><span class="s1">reg</span><span class="s4">, unsigned short </span><span class="s1">val)</span><span class="s4">; </span>
+
+<span class="s2">#endif </span><span class="s0">/* _GLCD_H */</span>
+</pre>
+</body>
+</html>

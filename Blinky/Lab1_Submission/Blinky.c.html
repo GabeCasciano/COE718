@@ -1,0 +1,160 @@
+<html>
+<head>
+<title>Blinky.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bbb529;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+.s5 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Blinky.c</font>
+</center></td></tr></table>
+<pre><span class="s0">/*---------------------------------------------------------------------------- 
+ * Name:    Blinky.c 
+ * Purpose: LED Flasher 
+ * Note(s): __USE_LCD   - enable Output on LCD, uncomment #define in code to use 
+ *                  for demo (NOT for analysis purposes) 
+ *---------------------------------------------------------------------------- 
+ * Copyright (c) 2008-2011 Keil - An ARM Company. 
+ * Name: Anita Tino 
+ *----------------------------------------------------------------------------*/</span>
+
+<span class="s2">#include </span><span class="s3">&lt;stdio.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&lt;string.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&quot;LPC17xx.H&quot;                       </span>
+<span class="s2">#include </span><span class="s3">&quot;GLCD.h&quot;</span>
+<span class="s2">#include </span><span class="s3">&quot;LED.h&quot;</span>
+<span class="s2">#include </span><span class="s3">&quot;ADC.h&quot;</span>
+<span class="s2">#include </span><span class="s3">&quot;KDB.h&quot;</span>
+<span class="s2">#include </span><span class="s3">&quot;Joystick.h&quot;</span>
+
+<span class="s2">#define </span><span class="s1">__FI        </span><span class="s4">1                      </span><span class="s0">/* Font index 16x24               */</span>
+<span class="s2">#define </span><span class="s1">__USE_LCD   </span><span class="s4">1										</span><span class="s0">/* Uncomment to use the LCD */</span>
+
+<span class="s0">//ITM Stimulus Port definitions for printf //////////////////</span>
+<span class="s2">#define </span><span class="s1">ITM_Port8(n)    (*((</span><span class="s5">volatile unsigned char </span><span class="s1">*)(</span><span class="s4">0xE0000000</span><span class="s1">+</span><span class="s4">4</span><span class="s1">*n)))</span>
+<span class="s2">#define </span><span class="s1">ITM_Port16(n)   (*((</span><span class="s5">volatile unsigned short</span><span class="s1">*)(</span><span class="s4">0xE0000000</span><span class="s1">+</span><span class="s4">4</span><span class="s1">*n)))</span>
+<span class="s2">#define </span><span class="s1">ITM_Port32(n)   (*((</span><span class="s5">volatile unsigned long </span><span class="s1">*)(</span><span class="s4">0xE0000000</span><span class="s1">+</span><span class="s4">4</span><span class="s1">*n)))</span>
+
+<span class="s2">#define </span><span class="s1">DEMCR           (*((</span><span class="s5">volatile unsigned long </span><span class="s1">*)(</span><span class="s4">0xE000EDFC</span><span class="s1">)))</span>
+<span class="s2">#define </span><span class="s1">TRCENA          </span><span class="s4">0x01000000</span>
+
+<span class="s5">struct </span><span class="s1">__FILE { </span><span class="s5">int </span><span class="s1">handle</span><span class="s5">;  </span><span class="s1">}</span><span class="s5">;</span>
+<span class="s1">FILE __stdout</span><span class="s5">;</span>
+<span class="s1">FILE __stdin</span><span class="s5">;</span>
+
+<span class="s5">int </span><span class="s1">fputc(</span><span class="s5">int </span><span class="s1">ch</span><span class="s5">, </span><span class="s1">FILE *f) {</span>
+  <span class="s5">if </span><span class="s1">(DEMCR &amp; TRCENA) {</span>
+    <span class="s5">while </span><span class="s1">(ITM_Port32(</span><span class="s4">0</span><span class="s1">) == </span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">ITM_Port8(</span><span class="s4">0</span><span class="s1">) = ch</span><span class="s5">;</span>
+  <span class="s1">}</span>
+  <span class="s5">return</span><span class="s1">(ch)</span><span class="s5">;</span>
+<span class="s1">}</span>
+<span class="s0">/////////////////////////////////////////////////////////</span>
+
+<span class="s5">char </span><span class="s1">adc_value[</span><span class="s4">16</span><span class="s1">]</span><span class="s5">;</span>
+<span class="s5">char </span><span class="s1">string[</span><span class="s4">20</span><span class="s1">]</span><span class="s5">;</span>
+<span class="s5">char </span><span class="s1">joystick_value[</span><span class="s4">10</span><span class="s1">]</span><span class="s5">;</span>
+
+<span class="s5">const unsigned long </span><span class="s1">led_mask1[] = { </span><span class="s4">1UL</span><span class="s1">&lt;&lt;</span><span class="s4">28</span><span class="s5">, </span><span class="s4">1UL</span><span class="s1">&lt;&lt;</span><span class="s4">29</span><span class="s5">, </span><span class="s4">1UL</span><span class="s1">&lt;&lt;</span><span class="s4">31</span><span class="s5">, </span><span class="s4">1UL</span><span class="s1">&lt;&lt; </span><span class="s4">2</span><span class="s5">,</span>
+
+                                   <span class="s4">1UL</span><span class="s1">&lt;&lt; </span><span class="s4">3</span><span class="s5">, </span><span class="s4">1UL</span><span class="s1">&lt;&lt; </span><span class="s4">4</span><span class="s5">, </span><span class="s4">1UL</span><span class="s1">&lt;&lt; </span><span class="s4">5</span><span class="s5">, </span><span class="s4">1UL</span><span class="s1">&lt;&lt; </span><span class="s4">6 </span><span class="s1">}</span><span class="s5">;</span>
+
+<span class="s0">//Use to trace the pot values in Debug</span>
+<span class="s1">uint16_t ADC_Dbg</span><span class="s5">;</span>
+
+<span class="s0">/* Import external variables from IRQ.c file                                  */</span>
+<span class="s5">extern </span><span class="s1">uint8_t  clock_ms</span><span class="s5">;</span>
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+  Main Program 
+ *----------------------------------------------------------------------------*/</span>
+<span class="s5">int </span><span class="s1">main (</span><span class="s5">void</span><span class="s1">) {</span>
+  <span class="s1">uint32_t ad_avg = </span><span class="s4">0</span><span class="s5">;</span>
+  <span class="s1">uint16_t ad_val = </span><span class="s4">0</span><span class="s5">, </span><span class="s1">ad_val_ = </span><span class="s4">0xFFFF</span><span class="s5">;</span>
+
+  <span class="s1">LED_Init()</span><span class="s5">;                                </span><span class="s0">/* LED Initialization            */</span>
+  <span class="s1">ADC_Init()</span><span class="s5">;                                </span><span class="s0">/* ADC Initialization            */</span>
+  <span class="s1">KDB_Init()</span><span class="s5">;																 </span><span class="s0">/* KDB Initialization                        */</span>
+	<span class="s1">JOYSTICK_Init()</span><span class="s5">;                           </span><span class="s0">/* JOYSTICK Initialization       */</span>
+	
+
+<span class="s2">#ifdef </span><span class="s1">__USE_LCD</span>
+  <span class="s1">GLCD_Init()</span><span class="s5">;                               </span><span class="s0">/* Initialize graphical LCD (if enabled */</span>
+
+  <span class="s1">GLCD_Clear(White)</span><span class="s5">;                         </span><span class="s0">/* Clear graphical LCD display   */</span>
+  <span class="s1">GLCD_SetBackColor(Blue)</span><span class="s5">;</span>
+  <span class="s1">GLCD_SetTextColor(Yellow)</span><span class="s5">;</span>
+  <span class="s1">GLCD_DisplayString(</span><span class="s4">0</span><span class="s5">, </span><span class="s4">0</span><span class="s5">, </span><span class="s1">__FI</span><span class="s5">, </span><span class="s1">(</span><span class="s5">unsigned char </span><span class="s1">*)</span><span class="s3">&quot;     COE718 Demo    &quot;</span><span class="s1">)</span><span class="s5">;</span>
+	<span class="s1">GLCD_SetTextColor(White)</span><span class="s5">;</span>
+  <span class="s1">GLCD_DisplayString(</span><span class="s4">1</span><span class="s5">, </span><span class="s4">0</span><span class="s5">, </span><span class="s1">__FI</span><span class="s5">, </span><span class="s1">(</span><span class="s5">unsigned char </span><span class="s1">*)</span><span class="s3">&quot;       Blinky.c     &quot;</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">GLCD_DisplayString(</span><span class="s4">2</span><span class="s5">, </span><span class="s4">0</span><span class="s5">, </span><span class="s1">__FI</span><span class="s5">, </span><span class="s1">(</span><span class="s5">unsigned char </span><span class="s1">*)</span><span class="s3">&quot;       Something    &quot;</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">GLCD_SetBackColor(White)</span><span class="s5">;</span>
+  <span class="s1">GLCD_SetTextColor(Blue)</span><span class="s5">;</span>
+
+<span class="s2">#endif</span>
+
+  <span class="s1">SysTick_Config(SystemCoreClock/</span><span class="s4">100</span><span class="s1">)</span><span class="s5">;       </span><span class="s0">/* Generate interrupt each 10 ms */</span>
+
+  <span class="s5">while </span><span class="s1">(</span><span class="s4">1</span><span class="s1">) {                                </span><span class="s0">/* Loop forever                  */</span>
+
+    <span class="s0">/* AD converter input                                                     */</span>
+    <span class="s5">if </span><span class="s1">(AD_done) {                           </span><span class="s0">/* If conversion has finished    */</span>
+      <span class="s1">AD_done = </span><span class="s4">0</span><span class="s5">;</span>
+
+      <span class="s1">ad_avg += AD_last &lt;&lt; </span><span class="s4">8</span><span class="s5">;                </span><span class="s0">/* Add AD value to averaging     */</span>
+      <span class="s1">ad_avg ++</span><span class="s5">;</span>
+      <span class="s5">if </span><span class="s1">((ad_avg &amp; </span><span class="s4">0xFF</span><span class="s1">) == </span><span class="s4">0x10</span><span class="s1">) {         </span><span class="s0">/* average over 16 values        */</span>
+        <span class="s1">ad_val = (ad_avg &gt;&gt; </span><span class="s4">8</span><span class="s1">) &gt;&gt; </span><span class="s4">4</span><span class="s5">;         </span><span class="s0">/* average devided by 16         */</span>
+        <span class="s1">ad_avg = </span><span class="s4">0</span><span class="s5">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+    
+		<span class="s1">ADC_Dbg = ad_val</span><span class="s5">;</span>
+		
+    <span class="s5">if </span><span class="s1">(ad_val ^ ad_val_) {                  </span><span class="s0">/* AD value changed              */</span>
+        <span class="s1">ad_val_ = ad_val</span><span class="s5">;</span>
+
+        <span class="s1">sprintf(adc_value</span><span class="s5">, </span><span class="s3">&quot;0x%04X&quot;</span><span class="s5">, </span><span class="s1">ad_val)</span><span class="s5">;       </span><span class="s0">/* format text for print out     */</span>
+    <span class="s1">}</span>
+		<span class="s1">strcpy(string</span><span class="s5">, </span><span class="s3">&quot;ADC: &quot;</span><span class="s1">)</span><span class="s5">;</span>
+		<span class="s1">strcat(string</span><span class="s5">, </span><span class="s1">adc_value)</span><span class="s5">;</span>
+    <span class="s1">GLCD_DisplayString(</span><span class="s4">6</span><span class="s5">, </span><span class="s4">0</span><span class="s5">, </span><span class="s1">__FI</span><span class="s5">, </span><span class="s1">(</span><span class="s5">unsigned char</span><span class="s1">*)string)</span><span class="s5">;</span>
+    <span class="s0">/* Print message with AD value every 10 ms                               */</span>
+    <span class="s5">if </span><span class="s1">(clock_ms) {</span>
+      <span class="s1">clock_ms = </span><span class="s4">0</span><span class="s5">;</span>
+			
+      <span class="s1">printf(</span><span class="s3">&quot;AD value: %s</span><span class="s5">\r\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">adc_value)</span><span class="s5">;</span>
+    <span class="s1">}</span>
+       <span class="s0">/* Update Joystick value and displays*/</span>
+		
+    <span class="s1">strcpy(joystick_value</span><span class="s5">, </span><span class="s1">JOYSTICK_Update())</span><span class="s5">;</span>
+    <span class="s1">strcpy(string</span><span class="s5">, </span><span class="s3">&quot;Joy Value: &quot;</span><span class="s1">)</span><span class="s5">;</span>
+	<span class="s5">if</span><span class="s1">(strcmp(joystick_value</span><span class="s5">, </span><span class="s1">JOYSTICK_UP)){</span>
+		<span class="s1">LED_Out(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+	<span class="s1">}</span><span class="s5">else if</span><span class="s1">(strcmp(joystick_value</span><span class="s5">, </span><span class="s1">JOYSTICK_DOWN)){</span>
+		<span class="s1">LED_Out(</span><span class="s4">2</span><span class="s1">)</span><span class="s5">;</span>
+	<span class="s1">}</span><span class="s5">else if</span><span class="s1">(strcmp(joystick_value</span><span class="s5">, </span><span class="s1">JOYSTICK_LEFT)){</span>
+		<span class="s1">LED_Out(</span><span class="s4">3</span><span class="s1">)</span><span class="s5">;</span>
+	<span class="s1">}</span><span class="s5">else if</span><span class="s1">(strcmp(joystick_value</span><span class="s5">, </span><span class="s1">JOYSTICK_RIGHT)){</span>
+		<span class="s1">LED_Out(</span><span class="s4">4</span><span class="s1">)</span><span class="s5">;</span>
+	<span class="s1">}</span><span class="s5">else if</span><span class="s1">(strcmp(joystick_value</span><span class="s5">, </span><span class="s1">JOYSTICK_SELECT)){</span>
+		<span class="s1">LED_Out(</span><span class="s4">5</span><span class="s1">)</span><span class="s5">;</span>
+	<span class="s1">}</span>
+    <span class="s1">strcat(string</span><span class="s5">, </span><span class="s1">joystick_value)</span><span class="s5">;</span>
+    <span class="s1">GLCD_DisplayString(</span><span class="s4">7</span><span class="s5">, </span><span class="s4">0</span><span class="s5">, </span><span class="s1">__FI</span><span class="s5">, </span><span class="s1">(</span><span class="s5">unsigned char</span><span class="s1">*)string)</span><span class="s5">;</span>
+
+  <span class="s1">}</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

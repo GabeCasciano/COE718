@@ -1,0 +1,117 @@
+<html>
+<head>
+<title>ADC.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bbb529;}
+.s3 { color: #6a8759;}
+.s4 { color: #cc7832;}
+.s5 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ADC.c</font>
+</center></td></tr></table>
+<pre><span class="s0">/*---------------------------------------------------------------------------- 
+ * Name:    ADC.c 
+ * Purpose: low level ADC functions 
+ * Note(s): possible defines select the used ADC interface: 
+ *            __ADC_IRQ   - ADC works in Interrupt mode 
+ *                        - ADC works in polling mode (default) 
+ *---------------------------------------------------------------------------- 
+ * This file is part of the uVision/ARM development tools. 
+ * This software may only be used under the terms of a valid, current, 
+ * end user licence from KEIL for a compatible version of KEIL software 
+ * development tools. Nothing else gives you the right to use this software. 
+ * 
+ * This software is supplied &quot;AS IS&quot; without warranties of any kind. 
+ * 
+ * Copyright (c) 2008-2011 Keil - An ARM Company. All rights reserved. 
+ *----------------------------------------------------------------------------*/</span>
+
+<span class="s2">#include </span><span class="s3">&quot;LPC17xx.H&quot;                         </span><span class="s0">/* LPC17xx definitions           */</span>
+<span class="s2">#include </span><span class="s3">&quot;ADC.h&quot;</span>
+
+<span class="s1">uint16_t AD_last</span><span class="s4">;                            </span><span class="s0">/* Last converted value          */</span>
+<span class="s1">uint8_t  AD_done = </span><span class="s5">0</span><span class="s4">;                        </span><span class="s0">/* AD conversion done flag       */</span>
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+  Function that initializes ADC 
+ *----------------------------------------------------------------------------*/</span>
+<span class="s4">void </span><span class="s1">ADC_Init (</span><span class="s4">void</span><span class="s1">) {</span>
+
+  <span class="s1">LPC_SC-&gt;PCONP |= ((</span><span class="s5">1 </span><span class="s1">&lt;&lt; </span><span class="s5">12</span><span class="s1">) | (</span><span class="s5">1 </span><span class="s1">&lt;&lt; </span><span class="s5">15</span><span class="s1">))</span><span class="s4">;  </span><span class="s0">/* enable power to ADC &amp; IOCON   */</span>
+
+  <span class="s1">LPC_PINCON-&gt;PINSEL1  &amp;= ~( </span><span class="s5">3 </span><span class="s1">&lt;&lt; </span><span class="s5">18</span><span class="s1">)</span><span class="s4">;</span>
+  <span class="s1">LPC_PINCON-&gt;PINSEL1  |=  ( </span><span class="s5">1 </span><span class="s1">&lt;&lt; </span><span class="s5">18</span><span class="s1">)</span><span class="s4">;       </span><span class="s0">/* P0.25 is AD0.2                */</span>
+  <span class="s1">LPC_PINCON-&gt;PINMODE1 &amp;= ~( </span><span class="s5">3 </span><span class="s1">&lt;&lt; </span><span class="s5">18</span><span class="s1">)</span><span class="s4">;</span>
+  <span class="s1">LPC_PINCON-&gt;PINMODE1 |=  ( </span><span class="s5">2 </span><span class="s1">&lt;&lt; </span><span class="s5">18</span><span class="s1">)</span><span class="s4">;       </span><span class="s0">/* P0.25 no pull up/down         */</span>
+
+  <span class="s1">LPC_ADC-&gt;ADCR        =  ( </span><span class="s5">1 </span><span class="s1">&lt;&lt;  </span><span class="s5">2</span><span class="s1">) |       </span><span class="s0">/* select AD0.2 pin              */</span>
+                          <span class="s1">( </span><span class="s5">4 </span><span class="s1">&lt;&lt;  </span><span class="s5">8</span><span class="s1">) |       </span><span class="s0">/* ADC clock is 25MHz/5          */</span>
+                          <span class="s1">( </span><span class="s5">1 </span><span class="s1">&lt;&lt; </span><span class="s5">21</span><span class="s1">)</span><span class="s4">;        </span><span class="s0">/* enable ADC                    */</span>
+
+<span class="s2">#ifdef </span><span class="s1">__ADC_IRQ</span>
+  <span class="s1">LPC_ADC-&gt;ADINTEN     =  ( </span><span class="s5">1 </span><span class="s1">&lt;&lt;  </span><span class="s5">8</span><span class="s1">)</span><span class="s4">;        </span><span class="s0">/* global enable interrupt       */</span>
+
+  <span class="s1">NVIC_EnableIRQ(ADC_IRQn)</span><span class="s4">;                  </span><span class="s0">/* enable ADC Interrupt          */</span>
+<span class="s2">#endif</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+  start AD Conversion 
+ *----------------------------------------------------------------------------*/</span>
+<span class="s4">void </span><span class="s1">ADC_StartCnv (</span><span class="s4">void</span><span class="s1">) {</span>
+  <span class="s1">LPC_ADC-&gt;ADCR &amp;= ~( </span><span class="s5">7 </span><span class="s1">&lt;&lt; </span><span class="s5">24</span><span class="s1">)</span><span class="s4">;              </span><span class="s0">/* stop conversion               */</span>
+  <span class="s1">LPC_ADC-&gt;ADCR |=  ( </span><span class="s5">1 </span><span class="s1">&lt;&lt; </span><span class="s5">24</span><span class="s1">)</span><span class="s4">;              </span><span class="s0">/* start conversion              */</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+  stop AD Conversion 
+ *----------------------------------------------------------------------------*/</span>
+<span class="s4">void </span><span class="s1">ADC_StopCnv (</span><span class="s4">void</span><span class="s1">) {</span>
+
+  <span class="s1">LPC_ADC-&gt;ADCR &amp;= ~( </span><span class="s5">7 </span><span class="s1">&lt;&lt; </span><span class="s5">24</span><span class="s1">)</span><span class="s4">;              </span><span class="s0">/* stop conversion               */</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+  get converted AD value 
+ *----------------------------------------------------------------------------*/</span>
+<span class="s1">uint16_t ADC_GetCnv (</span><span class="s4">void</span><span class="s1">) {</span>
+
+<span class="s2">#ifndef </span><span class="s1">__ADC_IRQ</span>
+  <span class="s4">while </span><span class="s1">(!(LPC_ADC-&gt;ADGDR &amp; ( </span><span class="s5">1UL </span><span class="s1">&lt;&lt; </span><span class="s5">31</span><span class="s1">)))</span><span class="s4">;  </span><span class="s0">/* Wait for Conversion end       */</span>
+  <span class="s1">AD_last = (LPC_ADC-&gt;ADGDR &gt;&gt; </span><span class="s5">4</span><span class="s1">) &amp; ADC_VALUE_MAX</span><span class="s4">; </span><span class="s0">/* Store converted value   */</span>
+
+  <span class="s1">AD_done = </span><span class="s5">1</span><span class="s4">;</span>
+<span class="s2">#endif</span>
+
+  <span class="s4">return</span><span class="s1">(AD_last)</span><span class="s4">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+  A/D IRQ: Executed when A/D Conversion is done 
+ *----------------------------------------------------------------------------*/</span>
+<span class="s2">#ifdef </span><span class="s1">__ADC_IRQ</span>
+<span class="s4">void </span><span class="s1">ADC_IRQHandler(</span><span class="s4">void</span><span class="s1">) {</span>
+  <span class="s4">volatile </span><span class="s1">uint32_t adstat</span><span class="s4">;</span>
+
+  <span class="s1">adstat = LPC_ADC-&gt;ADSTAT</span><span class="s4">;		             </span><span class="s0">/* Read ADC clears interrupt     */</span>
+
+  <span class="s1">AD_last = (LPC_ADC-&gt;ADGDR &gt;&gt; </span><span class="s5">4</span><span class="s1">) &amp; ADC_VALUE_MAX</span><span class="s4">; </span><span class="s0">/* Store converted value   */</span>
+
+  <span class="s1">AD_done = </span><span class="s5">1</span><span class="s4">;</span>
+<span class="s1">}</span>
+<span class="s2">#endif</span>
+</pre>
+</body>
+</html>

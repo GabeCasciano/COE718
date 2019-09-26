@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>LED.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bbb529;}
+.s3 { color: #6897bb;}
+.s4 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+LED.h</font>
+</center></td></tr></table>
+<pre><span class="s0">/*---------------------------------------------------------------------------- 
+ * Name:    LED.h 
+ * Purpose: low level LED definitions 
+ * Note(s): 
+ *---------------------------------------------------------------------------- 
+ * This file is part of the uVision/ARM development tools. 
+ * This software may only be used under the terms of a valid, current, 
+ * end user licence from KEIL for a compatible version of KEIL software 
+ * development tools. Nothing else gives you the right to use this software. 
+ * 
+ * This software is supplied &quot;AS IS&quot; without warranties of any kind. 
+ * 
+ * Copyright (c) 2009-2011 Keil - An ARM Company. All rights reserved. 
+ *----------------------------------------------------------------------------*/</span>
+
+<span class="s2">#ifndef </span><span class="s1">__LED_H</span>
+<span class="s2">#define </span><span class="s1">__LED_H</span>
+
+<span class="s0">/* LED Definitions */</span>
+<span class="s2">#define </span><span class="s1">LED_NUM     </span><span class="s3">8                        </span><span class="s0">/* Number of user LEDs          */</span>
+
+<span class="s4">extern void </span><span class="s1">LED_Init(</span><span class="s4">void</span><span class="s1">)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">LED_On  (</span><span class="s4">unsigned int </span><span class="s1">num)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">LED_Off (</span><span class="s4">unsigned int </span><span class="s1">num)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">LED_Out (</span><span class="s4">unsigned int </span><span class="s1">value)</span><span class="s4">;</span>
+
+<span class="s2">#endif</span>
+</pre>
+</body>
+</html>

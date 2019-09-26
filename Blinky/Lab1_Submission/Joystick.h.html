@@ -1,0 +1,46 @@
+<html>
+<head>
+<title>Joystick.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bbb529;}
+.s3 { color: #6a8759;}
+.s4 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Joystick.h</font>
+</center></td></tr></table>
+<pre><span class="s0">/*---------------------------------------------------------------------------- 
+ * Name:    Joystick.h 
+ * Purpose: definitions for the joystick library 
+ * Note(s): 
+ *---------------------------------------------------------------------------- 
+ */</span>
+
+<span class="s2">#ifndef </span><span class="s1">__JOYSTICK_H</span>
+<span class="s2">#define </span><span class="s1">__JOYSTICK_H</span>
+
+<span class="s2">#include </span><span class="s3">&quot;KDB.h&quot;</span>
+
+<span class="s2">#define </span><span class="s1">JOYSTICK_UP </span><span class="s3">&quot;UP&quot;</span>
+<span class="s2">#define </span><span class="s1">JOYSTICK_DOWN </span><span class="s3">&quot;DOWN&quot;</span>
+<span class="s2">#define </span><span class="s1">JOYSTICK_LEFT </span><span class="s3">&quot;LEFT&quot;</span>
+<span class="s2">#define </span><span class="s1">JOYSTICK_RIGHT </span><span class="s3">&quot;RIGHT&quot;</span>
+<span class="s2">#define </span><span class="s1">JOYSTICK_SELECT </span><span class="s3">&quot;SELECT&quot;</span>
+
+<span class="s4">extern </span><span class="s1">uint32_t joyStickValue</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">JOYSTICK_Init(</span><span class="s4">void</span><span class="s1">)</span><span class="s4">;</span>
+<span class="s4">extern void </span><span class="s1">getNeutral(</span><span class="s4">void</span><span class="s1">)</span><span class="s4">;</span>
+<span class="s4">extern char</span><span class="s1">* JOYSTICK_Update(</span><span class="s4">void</span><span class="s1">)</span><span class="s4">;</span>
+
+
+<span class="s2">#endif </span><span class="s0">//_JOYSTICK_H</span>
+</pre>
+</body>
+</html>

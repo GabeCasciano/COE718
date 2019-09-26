@@ -1,0 +1,950 @@
+<html>
+<head>
+<title>GLCD_SPI_LPC1700.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bbb529;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+.s5 { color: #cc7832;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+GLCD_SPI_LPC1700.c</font>
+</center></td></tr></table>
+<pre><span class="s0">/******************************************************************************/</span>
+<span class="s0">/* GLCD_SPI_LPC1700.c: LPC1700 low level Graphic LCD (240x320 pixels) driven  */</span>
+<span class="s0">/*                     with SPI functions                                     */</span>
+<span class="s0">/******************************************************************************/</span>
+<span class="s0">/* This file is part of the uVision/ARM development tools.                    */</span>
+<span class="s0">/* Copyright (c) 2005-2011 Keil - An ARM Company. All rights reserved.        */</span>
+<span class="s0">/* This software may only be used under the terms of a valid, current,        */</span>
+<span class="s0">/* end user licence from KEIL for a compatible version of KEIL software       */</span>
+<span class="s0">/* development tools. Nothing else gives you the right to use this software.  */</span>
+<span class="s0">/******************************************************************************/</span>
+
+
+<span class="s2">#include </span><span class="s3">&lt;lpc17xx.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&quot;GLCD.h&quot;</span>
+<span class="s2">#include </span><span class="s3">&quot;Font_6x8_h.h&quot;</span>
+<span class="s2">#include </span><span class="s3">&quot;Font_16x24_h.h&quot;</span>
+
+<span class="s0">/************************** Orientation  configuration ************************/</span>
+
+<span class="s2">#define </span><span class="s1">LANDSCAPE   </span><span class="s4">1                   </span><span class="s0">/* 1 for landscape, 0 for portrait    */</span>
+<span class="s2">#define </span><span class="s1">ROTATE180   </span><span class="s4">0                   </span><span class="s0">/* 1 to rotate the screen for 180 deg */</span>
+
+<span class="s0">/*********************** Hardware specific configuration **********************/</span>
+
+<span class="s0">/* SPI Interface: SPI3 
+    
+   PINS:  
+   - CS     = P0.6 (GPIO pin) 
+   - RS     = GND 
+   - WR/SCK = P0.7 (SCK1) 
+   - RD     = GND 
+   - SDO    = P0.8 (MISO1) 
+   - SDI    = P0.9 (MOSI1)                                                    */</span>
+
+<span class="s2">#define </span><span class="s1">PIN_CS      (</span><span class="s4">1 </span><span class="s1">&lt;&lt; </span><span class="s4">6</span><span class="s1">)</span>
+<span class="s2">#define </span><span class="s1">PIN_CLK     (</span><span class="s4">1 </span><span class="s1">&lt;&lt; </span><span class="s4">7</span><span class="s1">)</span>
+<span class="s2">#define </span><span class="s1">PIN_DAT     (</span><span class="s4">1 </span><span class="s1">&lt;&lt; </span><span class="s4">9</span><span class="s1">)</span>
+
+<span class="s2">#define </span><span class="s1">IN          </span><span class="s4">0x00</span>
+<span class="s2">#define </span><span class="s1">OUT         </span><span class="s4">0x01</span>
+
+<span class="s0">/* SPI_SR - bit definitions                                                   */</span>
+<span class="s2">#define </span><span class="s1">TFE         </span><span class="s4">0x01</span>
+<span class="s2">#define </span><span class="s1">RNE         </span><span class="s4">0x04</span>
+<span class="s2">#define </span><span class="s1">BSY         </span><span class="s4">0x10</span>
+
+<span class="s0">/*------------------------- Speed dependant settings -------------------------*/</span>
+
+<span class="s0">/* If processor works on high frequency delay has to be increased, it can be  
+   increased by factor 2^N by this constant                                   */</span>
+<span class="s2">#define </span><span class="s1">DELAY_2N    </span><span class="s4">18</span>
+
+<span class="s0">/*---------------------- Graphic LCD size definitions ------------------------*/</span>
+
+<span class="s2">#if </span><span class="s1">(LANDSCAPE == </span><span class="s4">1</span><span class="s1">)</span>
+<span class="s2">#define </span><span class="s1">WIDTH       </span><span class="s4">320                 </span><span class="s0">/* Screen Width (in pixels)           */</span>
+<span class="s2">#define </span><span class="s1">HEIGHT      </span><span class="s4">240                 </span><span class="s0">/* Screen Hight (in pixels)           */</span>
+<span class="s2">#else</span>
+<span class="s2">#define </span><span class="s1">WIDTH       </span><span class="s4">240                 </span><span class="s0">/* Screen Width (in pixels)           */</span>
+<span class="s2">#define </span><span class="s1">HEIGHT      </span><span class="s4">320                 </span><span class="s0">/* Screen Hight (in pixels)           */</span>
+<span class="s2">#endif</span>
+<span class="s2">#define </span><span class="s1">BPP         </span><span class="s4">16                  </span><span class="s0">/* Bits per pixel                     */</span>
+<span class="s2">#define </span><span class="s1">BYPP        ((BPP+</span><span class="s4">7</span><span class="s1">)/</span><span class="s4">8</span><span class="s1">)         </span><span class="s0">/* Bytes per pixel                    */</span>
+
+<span class="s0">/*--------------- Graphic LCD interface hardware definitions -----------------*/</span>
+
+<span class="s0">/* Pin CS setting to 0 or 1                                                   */</span>
+<span class="s2">#define </span><span class="s1">LCD_CS(x)   ((x) ? (LPC_GPIO0-&gt;FIOSET = PIN_CS)    : (LPC_GPIO0-&gt;FIOCLR = PIN_CS))</span>
+<span class="s2">#define </span><span class="s1">LCD_CLK(x)  ((x) ? (LPC_GPIO0-&gt;FIOSET = PIN_CLK)   : (LPC_GPIO0-&gt;FIOCLR = PIN_CLK))</span>
+<span class="s2">#define </span><span class="s1">LCD_DAT(x)  ((x) ? (LPC_GPIO0-&gt;FIOSET = PIN_DAT)   : (LPC_GPIO0-&gt;FIOCLR = PIN_DAT))</span>
+
+<span class="s2">#define </span><span class="s1">DAT_MODE(x) ((x == OUT) ? (LPC_GPIO0-&gt;FIODIR |= PIN_DAT) : (LPC_GPIO0-&gt;FIODIR &amp;= ~PIN_DAT))</span>
+<span class="s2">#define </span><span class="s1">BUS_VAL()                ((LPC_GPIO0-&gt;FIOPIN  &amp; PIN_DAT) != </span><span class="s4">0</span><span class="s1">)</span>
+
+
+<span class="s2">#define </span><span class="s1">SPI_START   (</span><span class="s4">0x70</span><span class="s1">)              </span><span class="s0">/* Start byte for SPI transfer        */</span>
+<span class="s2">#define </span><span class="s1">SPI_RD      (</span><span class="s4">0x01</span><span class="s1">)              </span><span class="s0">/* WR bit 1 within start              */</span>
+<span class="s2">#define </span><span class="s1">SPI_WR      (</span><span class="s4">0x00</span><span class="s1">)              </span><span class="s0">/* WR bit 0 within start              */</span>
+<span class="s2">#define </span><span class="s1">SPI_DATA    (</span><span class="s4">0x02</span><span class="s1">)              </span><span class="s0">/* RS bit 1 within start byte         */</span>
+<span class="s2">#define </span><span class="s1">SPI_INDEX   (</span><span class="s4">0x00</span><span class="s1">)              </span><span class="s0">/* RS bit 0 within start byte         */</span>
+
+<span class="s2">#define </span><span class="s1">BG_COLOR  </span><span class="s4">0                     </span><span class="s0">/* Background color                   */</span>
+<span class="s2">#define </span><span class="s1">TXT_COLOR </span><span class="s4">1                     </span><span class="s0">/* Text color                         */</span>
+
+ 
+<span class="s0">/*---------------------------- Global variables ------------------------------*/</span>
+
+<span class="s0">/******************************************************************************/</span>
+<span class="s5">static volatile unsigned short </span><span class="s1">Color[</span><span class="s4">2</span><span class="s1">] = {White</span><span class="s5">, </span><span class="s1">Black}</span><span class="s5">;</span>
+<span class="s5">static unsigned char </span><span class="s1">Himax</span><span class="s5">;</span>
+
+<span class="s0">/************************ Local auxiliary functions ***************************/</span>
+
+<span class="s0">/******************************************************************************* 
+* Delay in while loop cycles                                                   * 
+*   Parameter:    cnt:    number of while cycles to delay                      * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">static void </span><span class="s1">delay (</span><span class="s5">int </span><span class="s1">cnt) {</span>
+  <span class="s1">cnt &lt;&lt;= DELAY_2N</span><span class="s5">;</span>
+  <span class="s5">while </span><span class="s1">(cnt--)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Transfer 1 byte over the serial communication                                * 
+*   Parameter:    byte:   byte to be sent                                      * 
+*                 mode:   OUT = transmit byte, IN = receive byte               * 
+*   Return:               byte read while sending                              * 
+*******************************************************************************/</span>
+<span class="s5">static unsigned char </span><span class="s1">spi_tran_man (</span><span class="s5">unsigned char </span><span class="s1">byte</span><span class="s5">, unsigned int </span><span class="s1">mode) {</span>
+  <span class="s5">unsigned char </span><span class="s1">val = </span><span class="s4">0</span><span class="s5">;</span>
+  <span class="s5">int </span><span class="s1">i</span><span class="s5">;</span>
+
+  <span class="s5">if </span><span class="s1">(mode == OUT) { DAT_MODE (OUT)</span><span class="s5">; </span><span class="s1">}</span>
+  <span class="s5">else             </span><span class="s1">{ DAT_MODE (IN)</span><span class="s5">;  </span><span class="s1">}</span>
+
+  <span class="s5">for </span><span class="s1">(i = </span><span class="s4">7</span><span class="s5">; </span><span class="s1">i &gt;= </span><span class="s4">0</span><span class="s5">; </span><span class="s1">i--) {</span>
+    <span class="s1">LCD_CLK(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">delay(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s5">if </span><span class="s1">(mode == OUT) {</span>
+      <span class="s1">LCD_DAT((byte &amp; (</span><span class="s4">1 </span><span class="s1">&lt;&lt; i)) != </span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">}</span>
+    <span class="s5">else </span><span class="s1">{</span>
+      <span class="s1">val |= (BUS_VAL() &lt;&lt; i)</span><span class="s5">;</span>
+    <span class="s1">}</span>
+    <span class="s1">LCD_CLK(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">delay(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">}</span>
+  <span class="s5">return </span><span class="s1">(val)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Transfer 1 byte over the serial communication                                * 
+*   Parameter:    byte:   byte to be sent                                      * 
+*   Return:               byte read while sending                              * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline unsigned char </span><span class="s1">spi_tran (</span><span class="s5">unsigned char </span><span class="s1">byte) {</span>
+
+  <span class="s1">LPC_SSP1-&gt;DR = byte</span><span class="s5">;</span>
+  <span class="s5">while </span><span class="s1">(!(LPC_SSP1-&gt;SR &amp; RNE))</span><span class="s5">;        </span><span class="s0">/* Wait for send to finish            */</span>
+  <span class="s5">return </span><span class="s1">(LPC_SSP1-&gt;DR)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Write a command the LCD controller                                           * 
+*   Parameter:    cmd:    command to be written                                * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline void </span><span class="s1">wr_cmd (</span><span class="s5">unsigned char </span><span class="s1">cmd) {</span>
+  <span class="s1">LCD_CS(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">spi_tran(SPI_START | SPI_WR | SPI_INDEX)</span><span class="s5">;   </span><span class="s0">/* Write : RS = 0, RW = 0       */</span>
+  <span class="s1">spi_tran(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">spi_tran(cmd)</span><span class="s5">;</span>
+  <span class="s1">LCD_CS(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Write data to the LCD controller                                             * 
+*   Parameter:    dat:    data to be written                                   * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline void </span><span class="s1">wr_dat (</span><span class="s5">unsigned short </span><span class="s1">dat) {</span>
+  <span class="s1">LCD_CS(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">spi_tran(SPI_START | SPI_WR | SPI_DATA)</span><span class="s5">;    </span><span class="s0">/* Write : RS = 1, RW = 0       */</span>
+  <span class="s1">spi_tran((dat &gt;&gt;   </span><span class="s4">8</span><span class="s1">))</span><span class="s5">;                     </span><span class="s0">/* Write D8..D15                */</span>
+  <span class="s1">spi_tran((dat &amp; </span><span class="s4">0xFF</span><span class="s1">))</span><span class="s5">;                     </span><span class="s0">/* Write D0..D7                 */</span>
+  <span class="s1">LCD_CS(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Start of data writing to the LCD controller                                  * 
+*   Parameter:                                                                 * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline void </span><span class="s1">wr_dat_start (</span><span class="s5">void</span><span class="s1">) {</span>
+  <span class="s1">LCD_CS(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">spi_tran(SPI_START | SPI_WR | SPI_DATA)</span><span class="s5">;    </span><span class="s0">/* Write : RS = 1, RW = 0       */</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Stop of data writing to the LCD controller                                   * 
+*   Parameter:                                                                 * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline void </span><span class="s1">wr_dat_stop (</span><span class="s5">void</span><span class="s1">) {</span>
+
+  <span class="s1">LCD_CS(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Data writing to the LCD controller                                           * 
+*   Parameter:    dat:    data to be written                                   * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline void </span><span class="s1">wr_dat_only (</span><span class="s5">unsigned short </span><span class="s1">dat) {</span>
+
+  <span class="s1">spi_tran((dat &gt;&gt;   </span><span class="s4">8</span><span class="s1">))</span><span class="s5">;                     </span><span class="s0">/* Write D8..D15                */</span>
+  <span class="s1">spi_tran((dat &amp; </span><span class="s4">0xFF</span><span class="s1">))</span><span class="s5">;                     </span><span class="s0">/* Write D0..D7                 */</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Read data from the LCD controller                                            * 
+*   Parameter:                                                                 * 
+*   Return:               read data                                            * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline unsigned short </span><span class="s1">rd_dat (</span><span class="s5">void</span><span class="s1">) {</span>
+  <span class="s5">unsigned short </span><span class="s1">val = </span><span class="s4">0</span><span class="s5">;</span>
+
+  <span class="s1">LCD_CS(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">spi_tran(SPI_START | SPI_RD | SPI_DATA)</span><span class="s5">;    </span><span class="s0">/* Read: RS = 1, RW = 1         */</span>
+  <span class="s1">spi_tran(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;                                </span><span class="s0">/* Dummy read 1                 */  </span>
+  <span class="s1">val   = spi_tran(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;                        </span><span class="s0">/* Read D8..D15                 */</span>
+  <span class="s1">val &lt;&lt;= </span><span class="s4">8</span><span class="s5">;</span>
+  <span class="s1">val  |= spi_tran(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;                        </span><span class="s0">/* Read D0..D7                  */</span>
+  <span class="s1">LCD_CS(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s5">return </span><span class="s1">(val)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Write a value to the to LCD register                                         * 
+*   Parameter:    reg:    register to be written                               * 
+*                 val:    value to write to the register                       * 
+*******************************************************************************/</span>
+
+<span class="s5">static __inline void </span><span class="s1">wr_reg (</span><span class="s5">unsigned char </span><span class="s1">reg</span><span class="s5">, unsigned short </span><span class="s1">val) {</span>
+
+  <span class="s1">wr_cmd(reg)</span><span class="s5">;</span>
+  <span class="s1">wr_dat(val)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Read from the LCD register                                                   * 
+*   Parameter:    reg:    register to be read                                  * 
+*   Return:               value read from the register                         * 
+*******************************************************************************/</span>
+
+<span class="s5">static unsigned short </span><span class="s1">rd_reg (</span><span class="s5">unsigned char </span><span class="s1">reg) {</span>
+
+  <span class="s1">wr_cmd(reg)</span><span class="s5">;</span>
+  <span class="s5">return</span><span class="s1">(rd_dat())</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Read LCD controller ID (Himax GLCD)                                          * 
+*   Parameter:    (none)                                                       * 
+*   Return:       controller ID                                                * 
+*******************************************************************************/</span>
+
+<span class="s5">static unsigned short </span><span class="s1">rd_id_man (</span><span class="s5">void</span><span class="s1">) {</span>
+  <span class="s5">unsigned short </span><span class="s1">val</span><span class="s5">;</span>
+
+  <span class="s0">/* Set MOSI, MISO and SCK as GPIO pins, with pull-down/pull-up disabled     */</span>
+  <span class="s1">LPC_PINCON-&gt;PINSEL0  &amp;= ~((</span><span class="s4">3 </span><span class="s1">&lt;&lt; </span><span class="s4">18</span><span class="s1">) | (</span><span class="s4">3 </span><span class="s1">&lt;&lt; </span><span class="s4">16</span><span class="s1">) | (</span><span class="s4">3 </span><span class="s1">&lt;&lt; </span><span class="s4">14</span><span class="s1">))</span><span class="s5">;</span>
+  <span class="s1">LPC_PINCON-&gt;PINMODE0 |= </span><span class="s4">0x000AA000</span><span class="s5">;</span>
+  <span class="s1">LPC_GPIO0-&gt;FIODIR    |= PIN_CLK</span><span class="s5">;      </span><span class="s0">/* SCK pin is GPIO output             */</span>
+  <span class="s1">LCD_CS (</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;                           </span><span class="s0">/* Set chip select high               */</span>
+  <span class="s1">LCD_CLK(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;                           </span><span class="s0">/* Set clock high                     */</span>
+
+  <span class="s1">LCD_CS(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">spi_tran_man (SPI_START | SPI_WR | SPI_INDEX</span><span class="s5">, </span><span class="s1">OUT)</span><span class="s5">;</span>
+  <span class="s1">spi_tran_man (</span><span class="s4">0x00</span><span class="s5">, </span><span class="s1">OUT)</span><span class="s5">;</span>
+  <span class="s1">LCD_CS(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+
+  <span class="s1">LCD_CS(</span><span class="s4">0</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">spi_tran_man (SPI_START | SPI_RD | SPI_DATA</span><span class="s5">, </span><span class="s1">OUT)</span><span class="s5">;</span>
+  <span class="s1">val = spi_tran_man(</span><span class="s4">0</span><span class="s5">, </span><span class="s1">IN)</span><span class="s5">;</span>
+  <span class="s1">LCD_CS(</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;</span>
+
+  <span class="s0">/* Connect MOSI, MISO, and SCK to SSP peripheral                            */</span>
+  <span class="s1">LPC_GPIO0-&gt;FIODIR    &amp;= ~PIN_CLK</span><span class="s5">;</span>
+  <span class="s1">LPC_PINCON-&gt;PINSEL0  |= (</span><span class="s4">2 </span><span class="s1">&lt;&lt; </span><span class="s4">18</span><span class="s1">) | (</span><span class="s4">2 </span><span class="s1">&lt;&lt; </span><span class="s4">16</span><span class="s1">) | (</span><span class="s4">2 </span><span class="s1">&lt;&lt; </span><span class="s4">14</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">LPC_PINCON-&gt;PINMODE0 &amp;= ~</span><span class="s4">0x000FF000</span><span class="s5">;</span>
+
+  <span class="s5">return </span><span class="s1">(val)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/************************ Exported functions **********************************/</span>
+
+<span class="s0">/******************************************************************************* 
+* Initialize the Graphic LCD controller                                        * 
+*   Parameter:                                                                 * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_Init (</span><span class="s5">void</span><span class="s1">) {</span>
+  <span class="s5">unsigned short </span><span class="s1">driverCode</span><span class="s5">;</span>
+
+  <span class="s0">/* Enable clock for SSP1, clock = CCLK / 2                                  */</span>
+  <span class="s1">LPC_SC-&gt;PCONP       |= </span><span class="s4">0x00000400</span><span class="s5">;</span>
+  <span class="s1">LPC_SC-&gt;PCLKSEL0    |= </span><span class="s4">0x00200000</span><span class="s5">;</span>
+
+  <span class="s0">/* Configure the LCD Control pins                                           */</span>
+  <span class="s1">LPC_PINCON-&gt;PINSEL9 &amp;= </span><span class="s4">0xF0FFFFFF</span><span class="s5">;</span>
+  <span class="s1">LPC_GPIO4-&gt;FIODIR   |= </span><span class="s4">0x30000000</span><span class="s5">;</span>
+  <span class="s1">LPC_GPIO4-&gt;FIOSET    = </span><span class="s4">0x20000000</span><span class="s5">;</span>
+
+  <span class="s0">/* SSEL1 is GPIO output set to high                                         */</span>
+  <span class="s1">LPC_GPIO0-&gt;FIODIR   |= </span><span class="s4">0x00000040</span><span class="s5">;</span>
+  <span class="s1">LPC_GPIO0-&gt;FIOSET    = </span><span class="s4">0x00000040</span><span class="s5">;</span>
+  <span class="s1">LPC_PINCON-&gt;PINSEL0 &amp;= </span><span class="s4">0xFFF03FFF</span><span class="s5">;</span>
+  <span class="s1">LPC_PINCON-&gt;PINSEL0 |= </span><span class="s4">0x000A8000</span><span class="s5">;</span>
+
+  <span class="s0">/* Enable SPI in Master Mode, CPOL=1, CPHA=1                                */</span>
+  <span class="s0">/* Max. 12.5 MBit used for Data Transfer @ 100MHz                           */</span>
+  <span class="s1">LPC_SSP1-&gt;CR0        = </span><span class="s4">0x01C7</span><span class="s5">;</span>
+  <span class="s1">LPC_SSP1-&gt;CPSR       = </span><span class="s4">0x02</span><span class="s5">;</span>
+  <span class="s1">LPC_SSP1-&gt;CR1        = </span><span class="s4">0x02</span><span class="s5">;</span>
+  
+  <span class="s1">driverCode = rd_id_man ()</span><span class="s5">;</span>
+  <span class="s5">if </span><span class="s1">(driverCode == </span><span class="s4">0</span><span class="s1">) {</span>
+    <span class="s1">driverCode = rd_reg(</span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">}</span>
+
+  <span class="s5">if </span><span class="s1">(driverCode == </span><span class="s4">0x47</span><span class="s1">) {             </span><span class="s0">/* LCD with HX8347-D LCD Controller   */</span>
+    <span class="s1">Himax = </span><span class="s4">1</span><span class="s5">;                          </span><span class="s0">/* Set Himax LCD controller flag      */</span>
+    <span class="s0">/* Driving ability settings ----------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xEA</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Power control internal used (1)    */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xEB</span><span class="s5">, </span><span class="s4">0x20</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Power control internal used (2)    */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xEC</span><span class="s5">, </span><span class="s4">0x0C</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Source control internal used (1)   */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xED</span><span class="s5">, </span><span class="s4">0xC7</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Source control internal used (2)   */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xE8</span><span class="s5">, </span><span class="s4">0x38</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Source output period Normal mode   */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xE9</span><span class="s5">, </span><span class="s4">0x10</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Source output period Idle mode     */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xF1</span><span class="s5">, </span><span class="s4">0x01</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* RGB 18-bit interface ;0x0110       */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0xF2</span><span class="s5">, </span><span class="s4">0x10</span><span class="s1">)</span><span class="s5">;</span>
+
+    <span class="s0">/* Adjust the Gamma Curve ------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x40</span><span class="s5">, </span><span class="s4">0x01</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x41</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x42</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x43</span><span class="s5">, </span><span class="s4">0x10</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x44</span><span class="s5">, </span><span class="s4">0x0E</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x45</span><span class="s5">, </span><span class="s4">0x24</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x46</span><span class="s5">, </span><span class="s4">0x04</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x47</span><span class="s5">, </span><span class="s4">0x50</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x48</span><span class="s5">, </span><span class="s4">0x02</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x49</span><span class="s5">, </span><span class="s4">0x13</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x4A</span><span class="s5">, </span><span class="s4">0x19</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x4B</span><span class="s5">, </span><span class="s4">0x19</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x4C</span><span class="s5">, </span><span class="s4">0x16</span><span class="s1">)</span><span class="s5">;</span>
+
+    <span class="s1">wr_reg(</span><span class="s4">0x50</span><span class="s5">, </span><span class="s4">0x1B</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x51</span><span class="s5">, </span><span class="s4">0x31</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x52</span><span class="s5">, </span><span class="s4">0x2F</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x53</span><span class="s5">, </span><span class="s4">0x3F</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x54</span><span class="s5">, </span><span class="s4">0x3F</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x55</span><span class="s5">, </span><span class="s4">0x3E</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x56</span><span class="s5">, </span><span class="s4">0x2F</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x57</span><span class="s5">, </span><span class="s4">0x7B</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x58</span><span class="s5">, </span><span class="s4">0x09</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x59</span><span class="s5">, </span><span class="s4">0x06</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x5A</span><span class="s5">, </span><span class="s4">0x06</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x5B</span><span class="s5">, </span><span class="s4">0x0C</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x5C</span><span class="s5">, </span><span class="s4">0x1D</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x5D</span><span class="s5">, </span><span class="s4">0xCC</span><span class="s1">)</span><span class="s5">;</span>
+
+    <span class="s0">/* Power voltage setting -------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x1B</span><span class="s5">, </span><span class="s4">0x1B</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x1A</span><span class="s5">, </span><span class="s4">0x01</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x24</span><span class="s5">, </span><span class="s4">0x2F</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x25</span><span class="s5">, </span><span class="s4">0x57</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x23</span><span class="s5">, </span><span class="s4">0x88</span><span class="s1">)</span><span class="s5">;</span>
+
+    <span class="s0">/* Power on setting ------------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x18</span><span class="s5">, </span><span class="s4">0x36</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Internal oscillator frequency adj  */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x19</span><span class="s5">, </span><span class="s4">0x01</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Enable internal oscillator         */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x01</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Normal mode, no scrool             */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x1F</span><span class="s5">, </span><span class="s4">0x88</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Power control 6 - DDVDH Off        */</span>
+    <span class="s1">delay(</span><span class="s4">20</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x1F</span><span class="s5">, </span><span class="s4">0x82</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Power control 6 - Step-up: 3 x VCI */</span>
+    <span class="s1">delay(</span><span class="s4">5</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x1F</span><span class="s5">, </span><span class="s4">0x92</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Power control 6 - Step-up: On      */</span>
+    <span class="s1">delay(</span><span class="s4">5</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x1F</span><span class="s5">, </span><span class="s4">0xD2</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Power control 6 - VCOML active     */</span>
+    <span class="s1">delay(</span><span class="s4">5</span><span class="s1">)</span><span class="s5">;</span>
+
+    <span class="s0">/* Color selection -------------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x17</span><span class="s5">, </span><span class="s4">0x55</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* RGB, System interface: 16 Bit/Pixel*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x00</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Scrolling off, no standby          */</span>
+
+    <span class="s0">/* Interface config ------------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x2F</span><span class="s5">, </span><span class="s4">0x11</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* LCD Drive: 1-line inversion        */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x31</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x32</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* DPL=0, HSPL=0, VSPL=0, EPL=0       */</span>
+
+    <span class="s0">/* Display on setting ----------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x28</span><span class="s5">, </span><span class="s4">0x38</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* PT(0,0) active, VGL/VGL            */</span>
+    <span class="s1">delay(</span><span class="s4">20</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x28</span><span class="s5">, </span><span class="s4">0x3C</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* Display active, VGL/VGL            */</span>
+
+   <span class="s2">#if </span><span class="s1">(LANDSCAPE == </span><span class="s4">1</span><span class="s1">)</span>
+    <span class="s2">#if </span><span class="s1">(ROTATE180 == </span><span class="s4">0</span><span class="s1">)</span>
+     <span class="s1">wr_reg (</span><span class="s4">0x16</span><span class="s5">, </span><span class="s4">0xA8</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s2">#else</span>
+     <span class="s1">wr_reg (</span><span class="s4">0x16</span><span class="s5">, </span><span class="s4">0x68</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s2">#endif</span>
+   <span class="s2">#else</span>
+    <span class="s2">#if </span><span class="s1">(ROTATE180 == </span><span class="s4">0</span><span class="s1">)</span>
+     <span class="s1">wr_reg (</span><span class="s4">0x16</span><span class="s5">, </span><span class="s4">0x08</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s2">#else</span>
+     <span class="s1">wr_reg (</span><span class="s4">0x16</span><span class="s5">, </span><span class="s4">0xC8</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s2">#endif</span>
+   <span class="s2">#endif</span>
+
+    <span class="s0">/* Display scrolling settings --------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x0E</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* TFA MSB                            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x0F</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* TFA LSB                            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x10</span><span class="s5">, </span><span class="s4">320 </span><span class="s1">&gt;&gt; </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;             </span><span class="s0">/* VSA MSB                            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x11</span><span class="s5">, </span><span class="s4">320 </span><span class="s1">&amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;          </span><span class="s0">/* VSA LSB                            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x12</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* BFA MSB                            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x13</span><span class="s5">, </span><span class="s4">0x00</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* BFA LSB                            */</span>
+  <span class="s1">}</span>
+  <span class="s5">else </span><span class="s1">{</span>
+    <span class="s1">Himax = </span><span class="s4">0</span><span class="s5">;                          </span><span class="s0">/* This is not Himax LCD controller   */</span>
+    <span class="s0">/* Start Initial Sequence ------------------------------------------------*/</span>
+   <span class="s2">#if </span><span class="s1">(ROTATE180 == </span><span class="s4">1</span><span class="s1">)</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x01</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Clear SS bit                       */</span>
+   <span class="s2">#else</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x01</span><span class="s5">, </span><span class="s4">0x0100</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Set SS bit                         */</span>
+   <span class="s2">#endif</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x02</span><span class="s5">, </span><span class="s4">0x0700</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Set 1 line inversion               */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x04</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Resize register                    */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x08</span><span class="s5">, </span><span class="s4">0x0207</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* 2 lines front, 7 back porch        */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x09</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Set non-disp area refresh cyc ISC  */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x0A</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* FMARK function                     */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x0C</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* RGB interface setting              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x0D</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Frame marker Position              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x0F</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* RGB interface polarity             */</span>
+
+    <span class="s0">/* Power On sequence -----------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x10</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Reset Power Control 1              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x11</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Reset Power Control 2              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x12</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Reset Power Control 3              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x13</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Reset Power Control 4              */</span>
+    <span class="s1">delay(</span><span class="s4">20</span><span class="s1">)</span><span class="s5">;                          </span><span class="s0">/* Discharge cap power voltage (200ms)*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x10</span><span class="s5">, </span><span class="s4">0x12B0</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* SAP, BT[3:0], AP, DSTB, SLP, STB   */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x11</span><span class="s5">, </span><span class="s4">0x0007</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* DC1[2:0], DC0[2:0], VC[2:0]        */</span>
+    <span class="s1">delay(</span><span class="s4">5</span><span class="s1">)</span><span class="s5">;                           </span><span class="s0">/* Delay 50 ms                        */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x12</span><span class="s5">, </span><span class="s4">0x01BD</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* VREG1OUT voltage                   */</span>
+    <span class="s1">delay(</span><span class="s4">5</span><span class="s1">)</span><span class="s5">;                           </span><span class="s0">/* Delay 50 ms                        */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x13</span><span class="s5">, </span><span class="s4">0x1400</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* VDV[4:0] for VCOM amplitude        */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x29</span><span class="s5">, </span><span class="s4">0x000E</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* VCM[4:0] for VCOMH                 */</span>
+    <span class="s1">delay(</span><span class="s4">5</span><span class="s1">)</span><span class="s5">;                           </span><span class="s0">/* Delay 50 ms                        */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x20</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* GRAM horizontal Address            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x21</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* GRAM Vertical Address              */</span>
+
+    <span class="s0">/* Adjust the Gamma Curve ------------------------------------------------*/</span>
+    <span class="s5">switch </span><span class="s1">(driverCode) {</span>
+      <span class="s5">case </span><span class="s4">0x5408</span><span class="s1">:                      </span><span class="s0">/* LCD with SPFD5408 LCD Controller   */</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x30</span><span class="s5">, </span><span class="s4">0x0B0D</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x31</span><span class="s5">, </span><span class="s4">0x1923</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x32</span><span class="s5">, </span><span class="s4">0x1C26</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x33</span><span class="s5">, </span><span class="s4">0x261C</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x34</span><span class="s5">, </span><span class="s4">0x2419</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x35</span><span class="s5">, </span><span class="s4">0x0D0B</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x36</span><span class="s5">, </span><span class="s4">0x1006</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x37</span><span class="s5">, </span><span class="s4">0x0610</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x38</span><span class="s5">, </span><span class="s4">0x0706</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x39</span><span class="s5">, </span><span class="s4">0x0304</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3A</span><span class="s5">, </span><span class="s4">0x0E05</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3B</span><span class="s5">, </span><span class="s4">0x0E01</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3C</span><span class="s5">, </span><span class="s4">0x010E</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3D</span><span class="s5">, </span><span class="s4">0x050E</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3E</span><span class="s5">, </span><span class="s4">0x0403</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3F</span><span class="s5">, </span><span class="s4">0x0607</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s5">break;</span>
+
+      <span class="s5">case </span><span class="s4">0x9325</span><span class="s1">:                      </span><span class="s0">/* LCD with RM68050 LCD Controller    */</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0030</span><span class="s5">,</span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0031</span><span class="s5">,</span><span class="s4">0x0607</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0032</span><span class="s5">,</span><span class="s4">0x0305</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0035</span><span class="s5">,</span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0036</span><span class="s5">,</span><span class="s4">0x1604</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0037</span><span class="s5">,</span><span class="s4">0x0204</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0038</span><span class="s5">,</span><span class="s4">0x0001</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x0039</span><span class="s5">,</span><span class="s4">0x0707</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x003C</span><span class="s5">,</span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x003D</span><span class="s5">,</span><span class="s4">0x000F</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s5">break;</span>
+
+      <span class="s5">case </span><span class="s4">0x9320</span><span class="s1">:                      </span><span class="s0">/* LCD with ILI9320 LCD Controller    */</span>
+      <span class="s5">default</span><span class="s1">:                          </span><span class="s0">/* LCD with other LCD Controller      */</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x30</span><span class="s5">, </span><span class="s4">0x0006</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x31</span><span class="s5">, </span><span class="s4">0x0101</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x32</span><span class="s5">, </span><span class="s4">0x0003</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x35</span><span class="s5">, </span><span class="s4">0x0106</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x36</span><span class="s5">, </span><span class="s4">0x0B02</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x37</span><span class="s5">, </span><span class="s4">0x0302</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x38</span><span class="s5">, </span><span class="s4">0x0707</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x39</span><span class="s5">, </span><span class="s4">0x0007</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3C</span><span class="s5">, </span><span class="s4">0x0600</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x3D</span><span class="s5">, </span><span class="s4">0x020B</span><span class="s1">)</span><span class="s5">;</span>
+        <span class="s5">break;</span>
+    <span class="s1">}</span>
+
+    <span class="s0">/* Set GRAM area ---------------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x50</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Horizontal GRAM Start Address      */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x51</span><span class="s5">, </span><span class="s1">(HEIGHT-</span><span class="s4">1</span><span class="s1">))</span><span class="s5">;           </span><span class="s0">/* Horizontal GRAM End   Address      */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x52</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Vertical   GRAM Start Address      */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x53</span><span class="s5">, </span><span class="s1">(WIDTH-</span><span class="s4">1</span><span class="s1">))</span><span class="s5">;            </span><span class="s0">/* Vertical   GRAM End   Address      */</span>
+
+    <span class="s0">/* Set Gate Scan Line ----------------------------------------------------*/</span>
+    <span class="s5">switch </span><span class="s1">(driverCode) {</span>
+      <span class="s5">case </span><span class="s4">0x5408</span><span class="s1">:                      </span><span class="s0">/* LCD with SPFD5408 LCD Controller   */</span>
+      <span class="s5">case </span><span class="s4">0x9325</span><span class="s1">:                      </span><span class="s0">/* LCD with RM68050 LCD Controller    */</span>
+       <span class="s2">#if </span><span class="s1">(LANDSCAPE ^ ROTATE180)</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x60</span><span class="s5">, </span><span class="s4">0x2700</span><span class="s1">)</span><span class="s5">;</span>
+       <span class="s2">#else</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x60</span><span class="s5">, </span><span class="s4">0xA700</span><span class="s1">)</span><span class="s5">;</span>
+       <span class="s2">#endif</span>
+        <span class="s5">break;</span>
+
+      <span class="s5">case </span><span class="s4">0x9320</span><span class="s1">:                      </span><span class="s0">/* LCD with ILI9320 LCD Controller    */</span>
+      <span class="s5">default</span><span class="s1">:                          </span><span class="s0">/* LCD with other LCD Controller      */</span>
+       <span class="s2">#if </span><span class="s1">(LANDSCAPE ^ ROTATE180)</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x60</span><span class="s5">, </span><span class="s4">0xA700</span><span class="s1">)</span><span class="s5">;</span>
+       <span class="s2">#else</span>
+        <span class="s1">wr_reg(</span><span class="s4">0x60</span><span class="s5">, </span><span class="s4">0x2700</span><span class="s1">)</span><span class="s5">;</span>
+       <span class="s2">#endif</span>
+        <span class="s5">break;</span>
+    <span class="s1">}</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x61</span><span class="s5">, </span><span class="s4">0x0001</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* NDL,VLE, REV                       */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x6A</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* Set scrolling line                 */</span>
+
+    <span class="s0">/* Partial Display Control -----------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x80</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x81</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x82</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x83</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x84</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x85</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+
+    <span class="s0">/* Panel Control ---------------------------------------------------------*/</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x90</span><span class="s5">, </span><span class="s4">0x0010</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x92</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x93</span><span class="s5">, </span><span class="s4">0x0003</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x95</span><span class="s5">, </span><span class="s4">0x0110</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x97</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x98</span><span class="s5">, </span><span class="s4">0x0000</span><span class="s1">)</span><span class="s5">;</span>
+
+    <span class="s0">/* Set GRAM write direction 
+       I/D=11 (Horizontal : increment, Vertical : increment)                  */</span>
+  <span class="s2">#if </span><span class="s1">(LANDSCAPE == </span><span class="s4">1</span><span class="s1">)</span>
+    <span class="s0">/* AM=1   (address is updated in vertical writing direction)              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x03</span><span class="s5">, </span><span class="s4">0x1038</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s2">#else</span>
+    <span class="s0">/* AM=0   (address is updated in horizontal writing direction)            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x03</span><span class="s5">, </span><span class="s4">0x1030</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s2">#endif</span>
+
+    <span class="s1">wr_reg(</span><span class="s4">0x07</span><span class="s5">, </span><span class="s4">0x0137</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* 262K color and display ON          */</span>
+  <span class="s1">}</span>
+  <span class="s1">LPC_GPIO4-&gt;FIOSET = </span><span class="s4">0x10000000</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Set draw window region                                                       * 
+*   Parameter:      x:        horizontal position                              * 
+*                   y:        vertical position                                * 
+*                   w:        window width in pixel                            * 
+*                   h:        window height in pixels                          * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_SetWindow (</span><span class="s5">unsigned int </span><span class="s1">x</span><span class="s5">, unsigned int </span><span class="s1">y</span><span class="s5">, unsigned int </span><span class="s1">w</span><span class="s5">, unsigned int </span><span class="s1">h) {</span>
+  <span class="s5">unsigned int </span><span class="s1">xe</span><span class="s5">, </span><span class="s1">ye</span><span class="s5">;</span>
+
+  <span class="s5">if </span><span class="s1">(Himax) {</span>
+    <span class="s1">xe = x+w-</span><span class="s4">1</span><span class="s5">;</span>
+    <span class="s1">ye = y+h-</span><span class="s4">1</span><span class="s5">;</span>
+
+    <span class="s1">wr_reg(</span><span class="s4">0x02</span><span class="s5">, </span><span class="s1">x  &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Column address start MSB           */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x03</span><span class="s5">, </span><span class="s1">x  &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Column address start LSB           */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x04</span><span class="s5">, </span><span class="s1">xe &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Column address end MSB             */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x05</span><span class="s5">, </span><span class="s1">xe &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Column address end LSB             */</span>
+  
+    <span class="s1">wr_reg(</span><span class="s4">0x06</span><span class="s5">, </span><span class="s1">y  &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Row address start MSB              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x07</span><span class="s5">, </span><span class="s1">y  &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Row address start LSB              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x08</span><span class="s5">, </span><span class="s1">ye &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Row address end MSB                */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x09</span><span class="s5">, </span><span class="s1">ye &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;           </span><span class="s0">/* Row address end LSB                */</span>
+  <span class="s1">}</span>
+  <span class="s5">else </span><span class="s1">{</span>
+   <span class="s2">#if </span><span class="s1">(LANDSCAPE == </span><span class="s4">1</span><span class="s1">)</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x50</span><span class="s5">, </span><span class="s1">y)</span><span class="s5">;                    </span><span class="s0">/* Vertical   GRAM Start Address      */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x51</span><span class="s5">, </span><span class="s1">y+h-</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;                </span><span class="s0">/* Vertical   GRAM End   Address (-1) */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x52</span><span class="s5">, </span><span class="s1">x)</span><span class="s5">;                    </span><span class="s0">/* Horizontal GRAM Start Address      */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x53</span><span class="s5">, </span><span class="s1">x+w-</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;                </span><span class="s0">/* Horizontal GRAM End   Address (-1) */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x20</span><span class="s5">, </span><span class="s1">y)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x21</span><span class="s5">, </span><span class="s1">x)</span><span class="s5">;</span>
+   <span class="s2">#else</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x50</span><span class="s5">, </span><span class="s1">x)</span><span class="s5">;                    </span><span class="s0">/* Horizontal GRAM Start Address      */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x51</span><span class="s5">, </span><span class="s1">x+w-</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;                </span><span class="s0">/* Horizontal GRAM End   Address (-1) */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x52</span><span class="s5">, </span><span class="s1">y)</span><span class="s5">;                    </span><span class="s0">/* Vertical   GRAM Start Address      */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x53</span><span class="s5">, </span><span class="s1">y+h-</span><span class="s4">1</span><span class="s1">)</span><span class="s5">;                </span><span class="s0">/* Vertical   GRAM End   Address (-1) */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x20</span><span class="s5">, </span><span class="s1">x)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x21</span><span class="s5">, </span><span class="s1">y)</span><span class="s5">;</span>
+   <span class="s2">#endif</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Set draw window region to whole screen                                       * 
+*   Parameter:                                                                 * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_WindowMax (</span><span class="s5">void</span><span class="s1">) {</span>
+  <span class="s1">GLCD_SetWindow (</span><span class="s4">0</span><span class="s5">, </span><span class="s4">0</span><span class="s5">, </span><span class="s1">WIDTH</span><span class="s5">, </span><span class="s1">HEIGHT)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Draw a pixel in foreground color                                             * 
+*   Parameter:      x:        horizontal position                              * 
+*                   y:        vertical position                                * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_PutPixel (</span><span class="s5">unsigned int </span><span class="s1">x</span><span class="s5">, unsigned int </span><span class="s1">y) {</span>
+
+  <span class="s5">if </span><span class="s1">(Himax) {</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x02</span><span class="s5">, </span><span class="s1">x &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Column address start MSB           */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x03</span><span class="s5">, </span><span class="s1">x &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Column address start LSB           */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x04</span><span class="s5">, </span><span class="s1">x &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Column address end MSB             */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x05</span><span class="s5">, </span><span class="s1">x &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Column address end LSB             */</span>
+  
+    <span class="s1">wr_reg(</span><span class="s4">0x06</span><span class="s5">, </span><span class="s1">y &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Row address start MSB              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x07</span><span class="s5">, </span><span class="s1">y &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Row address start LSB              */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x08</span><span class="s5">, </span><span class="s1">y &gt;&gt;    </span><span class="s4">8</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Row address end MSB                */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x09</span><span class="s5">, </span><span class="s1">y &amp;  </span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;            </span><span class="s0">/* Row address end LSB                */</span>
+  <span class="s1">}</span>
+  <span class="s5">else </span><span class="s1">{</span>
+   <span class="s2">#if </span><span class="s1">(LANDSCAPE == </span><span class="s4">1</span><span class="s1">)</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x20</span><span class="s5">, </span><span class="s1">y)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x21</span><span class="s5">, </span><span class="s1">x)</span><span class="s5">;</span>
+   <span class="s2">#else</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x20</span><span class="s5">, </span><span class="s1">x)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x21</span><span class="s5">, </span><span class="s1">y)</span><span class="s5">;</span>
+   <span class="s2">#endif</span>
+  <span class="s1">}</span>
+
+  <span class="s1">wr_cmd(</span><span class="s4">0x22</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">wr_dat(Color[TXT_COLOR])</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Set foreground color                                                         * 
+*   Parameter:      color:    foreground color                                 * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_SetTextColor (</span><span class="s5">unsigned short </span><span class="s1">color) {</span>
+
+  <span class="s1">Color[TXT_COLOR] = color</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Set background color                                                         * 
+*   Parameter:      color:    background color                                 * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_SetBackColor (</span><span class="s5">unsigned short </span><span class="s1">color) {</span>
+
+  <span class="s1">Color[BG_COLOR] = color</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Clear display                                                                * 
+*   Parameter:      color:    display clearing color                           * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_Clear (</span><span class="s5">unsigned short </span><span class="s1">color) {</span>
+  <span class="s5">unsigned int </span><span class="s1">i</span><span class="s5">;</span>
+
+  <span class="s1">GLCD_WindowMax()</span><span class="s5">;</span>
+  <span class="s1">wr_cmd(</span><span class="s4">0x22</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">wr_dat_start()</span><span class="s5">;</span>
+
+  <span class="s5">for</span><span class="s1">(i = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">i &lt; (WIDTH*HEIGHT)</span><span class="s5">; </span><span class="s1">i++)</span>
+    <span class="s1">wr_dat_only(color)</span><span class="s5">;</span>
+  <span class="s1">wr_dat_stop()</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Draw character on given position                                             * 
+*   Parameter:      x:        horizontal position                              * 
+*                   y:        vertical position                                * 
+*                   cw:       character width in pixel                         * 
+*                   ch:       character height in pixels                       * 
+*                   c:        pointer to character bitmap                      * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_DrawChar (</span><span class="s5">unsigned int </span><span class="s1">x</span><span class="s5">, unsigned int </span><span class="s1">y</span><span class="s5">, unsigned int </span><span class="s1">cw</span><span class="s5">, unsigned int </span><span class="s1">ch</span><span class="s5">, unsigned char </span><span class="s1">*c) {</span>
+  <span class="s5">unsigned int </span><span class="s1">i</span><span class="s5">, </span><span class="s1">j</span><span class="s5">, </span><span class="s1">k</span><span class="s5">, </span><span class="s1">pixs</span><span class="s5">;</span>
+
+  <span class="s1">GLCD_SetWindow(x</span><span class="s5">, </span><span class="s1">y</span><span class="s5">, </span><span class="s1">cw</span><span class="s5">, </span><span class="s1">ch)</span><span class="s5">;</span>
+
+  <span class="s1">wr_cmd(</span><span class="s4">0x22</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">wr_dat_start()</span><span class="s5">;</span>
+
+  <span class="s1">k  = (cw + </span><span class="s4">7</span><span class="s1">)/</span><span class="s4">8</span><span class="s5">;</span>
+
+  <span class="s5">if </span><span class="s1">(k == </span><span class="s4">1</span><span class="s1">) {</span>
+    <span class="s5">for </span><span class="s1">(j = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">j &lt; ch</span><span class="s5">; </span><span class="s1">j++) {</span>
+      <span class="s1">pixs = *(</span><span class="s5">unsigned char  </span><span class="s1">*)c</span><span class="s5">;</span>
+      <span class="s1">c += </span><span class="s4">1</span><span class="s5">;</span>
+      
+      <span class="s5">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">i &lt; cw</span><span class="s5">; </span><span class="s1">i++) {</span>
+        <span class="s1">wr_dat_only (Color[(pixs &gt;&gt; i) &amp; </span><span class="s4">1</span><span class="s1">])</span><span class="s5">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s5">else if </span><span class="s1">(k == </span><span class="s4">2</span><span class="s1">) {</span>
+    <span class="s5">for </span><span class="s1">(j = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">j &lt; ch</span><span class="s5">; </span><span class="s1">j++) {</span>
+      <span class="s1">pixs = *(</span><span class="s5">unsigned short </span><span class="s1">*)c</span><span class="s5">;</span>
+      <span class="s1">c += </span><span class="s4">2</span><span class="s5">;</span>
+      
+      <span class="s5">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">i &lt; cw</span><span class="s5">; </span><span class="s1">i++) {</span>
+        <span class="s1">wr_dat_only (Color[(pixs &gt;&gt; i) &amp; </span><span class="s4">1</span><span class="s1">])</span><span class="s5">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">wr_dat_stop()</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Disply character on given line                                               * 
+*   Parameter:      ln:       line number                                      * 
+*                   col:      column number                                    * 
+*                   fi:       font index (0 = 6x8, 1 = 16x24)                  * 
+*                   c:        ascii character                                  * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_DisplayChar (</span><span class="s5">unsigned int </span><span class="s1">ln</span><span class="s5">, unsigned int </span><span class="s1">col</span><span class="s5">, unsigned char </span><span class="s1">fi</span><span class="s5">, unsigned char </span><span class="s1">c) {</span>
+
+  <span class="s1">c -= </span><span class="s4">32</span><span class="s5">;</span>
+  <span class="s5">switch </span><span class="s1">(fi) {</span>
+    <span class="s5">case </span><span class="s4">0</span><span class="s1">:  </span><span class="s0">/* Font 6 x 8 */</span>
+      <span class="s1">GLCD_DrawChar(col *  </span><span class="s4">6</span><span class="s5">, </span><span class="s1">ln *  </span><span class="s4">8</span><span class="s5">,  </span><span class="s4">6</span><span class="s5">,  </span><span class="s4">8</span><span class="s5">, </span><span class="s1">(</span><span class="s5">unsigned char </span><span class="s1">*)&amp;Font_6x8_h  [c * </span><span class="s4">8</span><span class="s1">])</span><span class="s5">;</span>
+      <span class="s5">break;</span>
+    <span class="s5">case </span><span class="s4">1</span><span class="s1">:  </span><span class="s0">/* Font 16 x 24 */</span>
+      <span class="s1">GLCD_DrawChar(col * </span><span class="s4">16</span><span class="s5">, </span><span class="s1">ln * </span><span class="s4">24</span><span class="s5">, </span><span class="s4">16</span><span class="s5">, </span><span class="s4">24</span><span class="s5">, </span><span class="s1">(</span><span class="s5">unsigned char </span><span class="s1">*)&amp;Font_16x24_h[c * </span><span class="s4">24</span><span class="s1">])</span><span class="s5">;</span>
+      <span class="s5">break;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Disply string on given line                                                  * 
+*   Parameter:      ln:       line number                                      * 
+*                   col:      column number                                    * 
+*                   fi:       font index (0 = 6x8, 1 = 16x24)                  * 
+*                   s:        pointer to string                                * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_DisplayString (</span><span class="s5">unsigned int </span><span class="s1">ln</span><span class="s5">, unsigned int </span><span class="s1">col</span><span class="s5">, unsigned char </span><span class="s1">fi</span><span class="s5">, unsigned char </span><span class="s1">*s) {</span>
+
+  <span class="s5">while </span><span class="s1">(*s) {</span>
+    <span class="s1">GLCD_DisplayChar(ln</span><span class="s5">, </span><span class="s1">col++</span><span class="s5">, </span><span class="s1">fi</span><span class="s5">, </span><span class="s1">*s++)</span><span class="s5">;</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Clear given line                                                             * 
+*   Parameter:      ln:       line number                                      * 
+*                   fi:       font index (0 = 6x8, 1 = 16x24)                  * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_ClearLn (</span><span class="s5">unsigned int </span><span class="s1">ln</span><span class="s5">, unsigned char </span><span class="s1">fi) {</span>
+  <span class="s5">unsigned char </span><span class="s1">i</span><span class="s5">;</span>
+  <span class="s5">unsigned char </span><span class="s1">buf[</span><span class="s4">60</span><span class="s1">]</span><span class="s5">;</span>
+
+  <span class="s1">GLCD_WindowMax()</span><span class="s5">;</span>
+  <span class="s5">switch </span><span class="s1">(fi) {</span>
+    <span class="s5">case </span><span class="s4">0</span><span class="s1">:  </span><span class="s0">/* Font 6 x 8 */</span>
+      <span class="s5">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">i &lt; (WIDTH+</span><span class="s4">5</span><span class="s1">)/</span><span class="s4">6</span><span class="s5">; </span><span class="s1">i++)</span>
+        <span class="s1">buf[i] = </span><span class="s3">' '</span><span class="s5">;</span>
+      <span class="s1">buf[i+</span><span class="s4">1</span><span class="s1">] = </span><span class="s4">0</span><span class="s5">;</span>
+      <span class="s5">break;</span>
+    <span class="s5">case </span><span class="s4">1</span><span class="s1">:  </span><span class="s0">/* Font 16 x 24 */</span>
+      <span class="s5">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">i &lt; (WIDTH+</span><span class="s4">15</span><span class="s1">)/</span><span class="s4">16</span><span class="s5">; </span><span class="s1">i++)</span>
+        <span class="s1">buf[i] = </span><span class="s3">' '</span><span class="s5">;</span>
+      <span class="s1">buf[i+</span><span class="s4">1</span><span class="s1">] = </span><span class="s4">0</span><span class="s5">;</span>
+      <span class="s5">break;</span>
+  <span class="s1">}</span>
+  <span class="s1">GLCD_DisplayString (ln</span><span class="s5">, </span><span class="s4">0</span><span class="s5">, </span><span class="s1">fi</span><span class="s5">, </span><span class="s1">buf)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+<span class="s0">/******************************************************************************* 
+* Draw bargraph                                                                * 
+*   Parameter:      x:        horizontal position                              * 
+*                   y:        vertical position                                * 
+*                   w:        maximum width of bargraph (in pixels)            * 
+*                   h:        bargraph height                                  * 
+*                   val:      value of active bargraph (in 1/1024)             * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_Bargraph (</span><span class="s5">unsigned int </span><span class="s1">x</span><span class="s5">, unsigned int </span><span class="s1">y</span><span class="s5">, unsigned int </span><span class="s1">w</span><span class="s5">, unsigned int </span><span class="s1">h</span><span class="s5">, unsigned int </span><span class="s1">val) {</span>
+  <span class="s5">int </span><span class="s1">i</span><span class="s5">,</span><span class="s1">j</span><span class="s5">;</span>
+
+  <span class="s1">val = (val * w) &gt;&gt; </span><span class="s4">10</span><span class="s5">;                </span><span class="s0">/* Scale value                        */</span>
+  <span class="s1">GLCD_SetWindow(x</span><span class="s5">, </span><span class="s1">y</span><span class="s5">, </span><span class="s1">w</span><span class="s5">, </span><span class="s1">h)</span><span class="s5">;</span>
+  <span class="s1">wr_cmd(</span><span class="s4">0x22</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">wr_dat_start()</span><span class="s5">;</span>
+  <span class="s5">for </span><span class="s1">(i = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">i &lt; h</span><span class="s5">; </span><span class="s1">i++) {</span>
+    <span class="s5">for </span><span class="s1">(j = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">j &lt;= w-</span><span class="s4">1</span><span class="s5">; </span><span class="s1">j++) {</span>
+      <span class="s5">if</span><span class="s1">(j &gt;= val) {</span>
+        <span class="s1">wr_dat_only(Color[BG_COLOR])</span><span class="s5">;</span>
+      <span class="s1">} </span><span class="s5">else </span><span class="s1">{</span>
+        <span class="s1">wr_dat_only(Color[TXT_COLOR])</span><span class="s5">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">wr_dat_stop()</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Display graphical bitmap image at position x horizontally and y vertically   * 
+* (This function is optimized for 16 bits per pixel format, it has to be       * 
+*  adapted for any other bits per pixel format)                                * 
+*   Parameter:      x:        horizontal position                              * 
+*                   y:        vertical position                                * 
+*                   w:        width of bitmap                                  * 
+*                   h:        height of bitmap                                 * 
+*                   bitmap:   address at which the bitmap data resides         * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_Bitmap (</span><span class="s5">unsigned int </span><span class="s1">x</span><span class="s5">, unsigned int </span><span class="s1">y</span><span class="s5">, unsigned int </span><span class="s1">w</span><span class="s5">, unsigned int </span><span class="s1">h</span><span class="s5">, unsigned char </span><span class="s1">*bitmap) {</span>
+  <span class="s5">int </span><span class="s1">i</span><span class="s5">, </span><span class="s1">j</span><span class="s5">;</span>
+  <span class="s5">unsigned short </span><span class="s1">*bitmap_ptr = (</span><span class="s5">unsigned short </span><span class="s1">*)bitmap</span><span class="s5">;</span>
+
+  <span class="s1">GLCD_SetWindow (x</span><span class="s5">, </span><span class="s1">y</span><span class="s5">, </span><span class="s1">w</span><span class="s5">, </span><span class="s1">h)</span><span class="s5">;</span>
+
+  <span class="s1">wr_cmd(</span><span class="s4">0x22</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">wr_dat_start()</span><span class="s5">;</span>
+  <span class="s5">for </span><span class="s1">(i = (h-</span><span class="s4">1</span><span class="s1">)*w</span><span class="s5">; </span><span class="s1">i &gt; -</span><span class="s4">1</span><span class="s5">; </span><span class="s1">i -= w) {</span>
+    <span class="s5">for </span><span class="s1">(j = </span><span class="s4">0</span><span class="s5">; </span><span class="s1">j &lt; w</span><span class="s5">; </span><span class="s1">j++) {</span>
+      <span class="s1">wr_dat_only (bitmap_ptr[i+j])</span><span class="s5">;</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+  <span class="s1">wr_dat_stop()</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+
+<span class="s0">/******************************************************************************* 
+* Scroll content of the whole display for dy pixels vertically                 * 
+*   Parameter:      dy:       number of pixels for vertical scroll             * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+
+<span class="s5">void </span><span class="s1">GLCD_ScrollVertical (</span><span class="s5">unsigned int </span><span class="s1">dy) {</span>
+<span class="s2">#if </span><span class="s1">(LANDSCAPE == </span><span class="s4">0</span><span class="s1">)</span>
+  <span class="s5">static unsigned int </span><span class="s1">y = </span><span class="s4">0</span><span class="s5">;</span>
+
+  <span class="s1">y = y + dy</span><span class="s5">;</span>
+  <span class="s5">while </span><span class="s1">(y &gt;= HEIGHT)</span>
+    <span class="s1">y -= HEIGHT</span><span class="s5">;</span>
+
+  <span class="s5">if </span><span class="s1">(Himax) {</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x01</span><span class="s5">, </span><span class="s4">0x08</span><span class="s1">)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x14</span><span class="s5">, </span><span class="s1">y&gt;&gt;</span><span class="s4">8</span><span class="s1">)</span><span class="s5">;                 </span><span class="s0">/* VSP MSB                            */</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x15</span><span class="s5">, </span><span class="s1">y&amp;</span><span class="s4">0xFF</span><span class="s1">)</span><span class="s5">;               </span><span class="s0">/* VSP LSB                            */</span>
+  <span class="s1">}</span>
+  <span class="s5">else </span><span class="s1">{</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x6A</span><span class="s5">, </span><span class="s1">y)</span><span class="s5">;</span>
+    <span class="s1">wr_reg(</span><span class="s4">0x61</span><span class="s5">, </span><span class="s4">3</span><span class="s1">)</span><span class="s5">;</span>
+  <span class="s1">}</span>
+<span class="s2">#endif</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Write a command to the LCD controller                                        * 
+*   Parameter:      cmd:      command to write to the LCD                      * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+<span class="s5">void </span><span class="s1">GLCD_WrCmd (</span><span class="s5">unsigned char </span><span class="s1">cmd) {</span>
+  <span class="s1">wr_cmd (cmd)</span><span class="s5">;</span>
+<span class="s1">}</span>
+
+
+<span class="s0">/******************************************************************************* 
+* Write a value into LCD controller register                                   * 
+*   Parameter:      reg:      lcd register address                             * 
+*                   val:      value to write into reg                          * 
+*   Return:                                                                    * 
+*******************************************************************************/</span>
+<span class="s5">void </span><span class="s1">GLCD_WrReg (</span><span class="s5">unsigned char </span><span class="s1">reg</span><span class="s5">, unsigned short </span><span class="s1">val) {</span>
+  <span class="s1">wr_reg (reg</span><span class="s5">, </span><span class="s1">val)</span><span class="s5">;</span>
+<span class="s1">}</span>
+<span class="s0">/******************************************************************************/</span>
+</pre>
+</body>
+</html>

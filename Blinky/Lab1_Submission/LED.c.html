@@ -1,0 +1,151 @@
+<html>
+<head>
+<title>LED.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #808080;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #bbb529;}
+.s3 { color: #6a8759;}
+.s4 { color: #cc7832;}
+.s5 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+LED.c</font>
+</center></td></tr></table>
+<pre><span class="s0">/*---------------------------------------------------------------------------- 
+ 
+ 
+ 
+ * Name:    LED.c 
+ 
+ * Purpose: low level LED functions 
+ 
+ * Note(s): 
+ 
+ *---------------------------------------------------------------------------- 
+ 
+ * This file is part of the uVision/ARM development tools. 
+ 
+ * This software may only be used under the terms of a valid, current, 
+ 
+ * end user licence from KEIL for a compatible version of KEIL software 
+ 
+ * development tools. Nothing else gives you the right to use this software. 
+ 
+ * 
+ 
+ * This software is supplied &quot;AS IS&quot; without warranties of any kind. 
+ 
+ * 
+ 
+ * Copyright (c) 2009-2011 Keil - An ARM Company. All rights reserved. 
+ 
+ *----------------------------------------------------------------------------*/</span>
+
+
+
+<span class="s2">#include </span><span class="s3">&quot;LPC17xx.H&quot;                         </span><span class="s0">/* LPC17xx definitions           */</span>
+
+<span class="s2">#include </span><span class="s3">&quot;LED.h&quot;</span>
+
+
+
+<span class="s4">const unsigned long </span><span class="s1">led_mask[] = { </span><span class="s5">1UL</span><span class="s1">&lt;&lt;</span><span class="s5">28</span><span class="s4">, </span><span class="s5">1UL</span><span class="s1">&lt;&lt;</span><span class="s5">29</span><span class="s4">, </span><span class="s5">1UL</span><span class="s1">&lt;&lt;</span><span class="s5">31</span><span class="s4">, </span><span class="s5">1UL</span><span class="s1">&lt;&lt; </span><span class="s5">2</span><span class="s4">,</span>
+
+                                   <span class="s5">1UL</span><span class="s1">&lt;&lt; </span><span class="s5">3</span><span class="s4">, </span><span class="s5">1UL</span><span class="s1">&lt;&lt; </span><span class="s5">4</span><span class="s4">, </span><span class="s5">1UL</span><span class="s1">&lt;&lt; </span><span class="s5">5</span><span class="s4">, </span><span class="s5">1UL</span><span class="s1">&lt;&lt; </span><span class="s5">6 </span><span class="s1">}</span><span class="s4">;</span>
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+ 
+  initialize LED Pins 
+ 
+ *----------------------------------------------------------------------------*/</span>
+
+
+
+<span class="s4">void </span><span class="s1">LED_Init (</span><span class="s4">void</span><span class="s1">) {</span>
+
+
+
+  <span class="s1">LPC_SC-&gt;PCONP     |= (</span><span class="s5">1 </span><span class="s1">&lt;&lt; </span><span class="s5">15</span><span class="s1">)</span><span class="s4">;            </span><span class="s0">/* enable power to GPIO &amp; IOCON  */</span>
+
+
+
+  <span class="s1">LPC_GPIO1-&gt;FIODIR |= </span><span class="s5">0xB0000000</span><span class="s4">;           </span><span class="s0">/* LEDs on PORT1 are output      */</span>
+
+  <span class="s1">LPC_GPIO2-&gt;FIODIR |= </span><span class="s5">0x0000007C</span><span class="s4">;           </span><span class="s0">/* LEDs on PORT2 are output      */</span>
+
+<span class="s1">}</span>
+
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+ 
+  Function that turns on requested LED 
+ 
+ *----------------------------------------------------------------------------*/</span>
+
+<span class="s4">void </span><span class="s1">LED_On (</span><span class="s4">unsigned int </span><span class="s1">num) {</span>
+
+
+
+  <span class="s4">if </span><span class="s1">(num &lt; </span><span class="s5">3</span><span class="s1">) LPC_GPIO1-&gt;FIOPIN |=  led_mask[num]</span><span class="s4">;</span>
+
+  <span class="s4">else         </span><span class="s1">LPC_GPIO2-&gt;FIOPIN |=  led_mask[num]</span><span class="s4">;</span>
+
+<span class="s1">}</span>
+
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+ 
+  Function that turns off requested LED 
+ 
+ *----------------------------------------------------------------------------*/</span>
+
+<span class="s4">void </span><span class="s1">LED_Off (</span><span class="s4">unsigned int </span><span class="s1">num) {</span>
+
+
+
+  <span class="s4">if </span><span class="s1">(num &lt; </span><span class="s5">3</span><span class="s1">) LPC_GPIO1-&gt;FIOPIN &amp;= ~led_mask[num]</span><span class="s4">;</span>
+
+  <span class="s4">else         </span><span class="s1">LPC_GPIO2-&gt;FIOPIN &amp;= ~led_mask[num]</span><span class="s4">;</span>
+
+<span class="s1">}</span>
+
+
+
+<span class="s0">/*---------------------------------------------------------------------------- 
+ 
+  Function that outputs value to LEDs 
+ 
+ *----------------------------------------------------------------------------*/</span>
+
+<span class="s4">void </span><span class="s1">LED_Out(</span><span class="s4">unsigned int </span><span class="s1">value) {</span>
+
+  <span class="s4">int </span><span class="s1">i</span><span class="s4">;</span>
+
+
+
+  <span class="s4">for </span><span class="s1">(i = </span><span class="s5">0</span><span class="s4">; </span><span class="s1">i &lt; LED_NUM</span><span class="s4">; </span><span class="s1">i++) {</span>
+
+    <span class="s4">if </span><span class="s1">(value == i) {</span>
+
+      <span class="s1">LED_On (i)</span><span class="s4">;</span>
+
+    <span class="s1">} </span><span class="s4">else </span><span class="s1">{</span>
+
+      <span class="s1">LED_Off(i)</span><span class="s4">;</span>
+
+    <span class="s1">}</span>
+
+  <span class="s1">}</span>
+
+<span class="s1">}</span>
+</pre>
+</body>
+</html>

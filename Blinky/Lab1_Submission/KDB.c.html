@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>KDB.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bbb529;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #cc7832;}
+.s5 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+KDB.c</font>
+</center></td></tr></table>
+<pre><span class="s0">#include </span><span class="s2">&quot;LPC17xx.h&quot;</span>
+<span class="s0">#include </span><span class="s2">&quot;KDB.h&quot;</span>
+<span class="s1">uint32_t KBD_val  = </span><span class="s3">0</span><span class="s4">;     </span>
+<span class="s5">/*----------------------------------------------------------------------------   initialize Joystick  *----------------------------------------------------------------------------*/</span>
+<span class="s4">void </span><span class="s1">KDB_Init (</span><span class="s4">void</span><span class="s1">) {   </span>
+	<span class="s1">LPC_SC-&gt;PCONP     |= (</span><span class="s3">1 </span><span class="s1">&lt;&lt; </span><span class="s3">15</span><span class="s1">)</span><span class="s4">;</span><span class="s5">/* enable power to GPIO &amp; IOCON  */ /* P1.20, P1.23..26 is GPIO (Joystick) */   </span>
+	<span class="s1">LPC_PINCON-&gt;PINSEL3 &amp;= ~((</span><span class="s3">3</span><span class="s1">&lt;&lt; </span><span class="s3">8</span><span class="s1">)|(</span><span class="s3">3</span><span class="s1">&lt;&lt;</span><span class="s3">14</span><span class="s1">)|(</span><span class="s3">3</span><span class="s1">&lt;&lt;</span><span class="s3">16</span><span class="s1">)|(</span><span class="s3">3</span><span class="s1">&lt;&lt;</span><span class="s3">18</span><span class="s1">)|(</span><span class="s3">3</span><span class="s1">&lt;&lt;</span><span class="s3">20</span><span class="s1">))</span><span class="s4">;   </span><span class="s5">/* P1.20, P1.23..26 is input */   </span>
+	<span class="s1">LPC_GPIO1-&gt;FIODIR   &amp;= ~((</span><span class="s3">1</span><span class="s1">&lt;&lt;</span><span class="s3">20</span><span class="s1">)|(</span><span class="s3">1</span><span class="s1">&lt;&lt;</span><span class="s3">23</span><span class="s1">)|(</span><span class="s3">1</span><span class="s1">&lt;&lt;</span><span class="s3">24</span><span class="s1">)|(</span><span class="s3">1</span><span class="s1">&lt;&lt;</span><span class="s3">25</span><span class="s1">)|(</span><span class="s3">1</span><span class="s1">&lt;&lt;</span><span class="s3">26</span><span class="s1">))</span><span class="s4">;  </span>
+<span class="s1">}</span>
+<span class="s1">uint32_t KDB_get(</span><span class="s4">void</span><span class="s1">){</span>
+	<span class="s1">uint32_t kdb_val</span><span class="s4">;</span>
+	<span class="s1">kdb_val = (LPC_GPIO1-&gt;FIOPIN &gt;&gt; </span><span class="s3">20</span><span class="s1">) &amp; KDB_MASK</span><span class="s4">;</span>
+	<span class="s4">return</span><span class="s1">(kdb_val)</span><span class="s4">;</span>
+<span class="s1">}</span>
+
+<span class="s1">uint32_t KDB_button(</span><span class="s4">void</span><span class="s1">){</span>
+	<span class="s1">uint32_t val = </span><span class="s3">0</span><span class="s4">;</span>
+	<span class="s1">val = KDB_get()</span><span class="s4">;</span>
+	<span class="s1">val = (-val &amp; KDB_MASK)</span><span class="s4">;</span>
+	<span class="s4">return </span><span class="s1">(val)</span><span class="s4">;</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>
