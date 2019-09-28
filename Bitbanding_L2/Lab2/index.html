@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 2</title>
+</head>
+    <h2>Gabiel Casciano, 500744076 <br/> gabriel.casciano@ryerson.ca<br/></h2>
+    <h3>1) Performance Analysis</h3>
+    <br/>
+    <table border = "1">
+        <tr>
+            <td></td>
+            <td>-O0</td>
+            <td>-03</td>
+            <td>Performance Increase</td>
+        </tr>
+        <tr>
+            <td>Masking</td>
+            <td>0.54us</td>
+            <td>0.54us</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>Function</td>
+            <td>0.13us</td>
+            <td>0.13us</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>Bit Banding</td>
+            <td>0.1us</td>
+            <td>0.1us</td>
+            <td>0</td>
+        </tr>
+    </table>
+    <br/>
+    <br/>
+    Below is my program for the lab both the actual demo and the program I used to collect the times are in there.<br/>
+    I have not included the files in my include because they are standard libraries and have not been modified.
+    <br/>
+    <a href="bitbandled.c.html">bitbandled.c</a>
+    <br/>
+    <br>
+    As for quesiton 2) as you can tell in the table above, there was no performance gain.<br/>
+    I believe this is because the lines being run where so simple that it could not have been optimized any more.<br/>
+
+    I the importance between having a debug and target version is that in your debug you can utilize many things to<br/>
+    determine whether or not your system is operating correctly. But for actual production version, all of the debug<br/>
+    functionality is removed so your system can be as quick as possible.<br/>
+    <br/>
+    <br/>
+    You can also find my report right here:
+    <br/>
+    <a href="Explination.pdf">Report</a>
+</body>
+</html>

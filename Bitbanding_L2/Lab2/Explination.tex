@@ -1,0 +1,80 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{underscore}
+\newcommand\var{\texttt}
+\usepackage{array}
+\title{COE718 - Lab 2}
+\date{Sept, 27, 2019}
+\author{Gabriel Casciano, 500744076\\ gabriel.casciano@ryerson.ca}
+\begin{document}
+    \maketitle
+
+    The code snippet, \textbf{Listing. 1}, shows how we can use the LED header file, to performs bit masking to enable the LEDS. Before
+    the main runtime begins the LED init function must be called to ensure all pins are configured properly.The LED header masks the
+    $\var{LPC_GPIOx->FIOPIN}$ register, typically we mask with |= and &= depending whether or not we are setting bits HIGH or LOW.
+
+    The code snippet, \textbf{Listing. 2}, implements an example of using the bit banding function.The address returned by the
+    BitBanding function must be assigned to our pointer.Once it is assigned we can simply assign a 1 or 0 to turn
+    it on or off.
+    \begin {gather*}
+        ByteOffest = 0x20000000 - MemoryMappedAddress\\
+        Bit BandAddress = StartPoint + (ByteOffset * 32) + (Bit * 4)\\
+    \end  {gather*}
+    The way the math is implemented in the program is different because it uses logical or,and left shift to allow
+    be for quicker computation.
+
+    Using the Bit banding address function and hand calculating the addresses and assigning them to variables is
+    functionally the same thing as using the bit banding function and can be observed in \textbf{Listing. 3}.
+
+    \section*{Calculations}\label{sec:calculations}
+    I have calculated the Bit band addresses for both P1.31 and P2.2,
+    \subitem
+    \begin{eqaution}
+    \var{GPIO1_PIN Memory Addr}= 0x2009C034\\
+Bit = 31\\
+StartPoint = 0x22000000\\
+ByteOffset = 0x20000000 - MemoryMappedAddress = x9C034\\
+Bit BandAddress = StartPoint + (ByteOffset * 32) + (Bit * 4) = 0x233806FC\\
+    \end {eqaution}
+    \subitem
+    \begin{eqaution}
+        \var{GPIO2_PIN Memory Addr} = 0x2009C054\\
+Bit = 2\\
+StartPoint = 0x22000000\\
+ByteOffset = 0x20000000 - MemoryMappedAddress = x9C054\\
+Bit BandAddress = StartPoint + (ByteOffset * 32) + (Bit * 4) = 0x23380A88\\
+    \end {eqaution}
+
+    \begin{lstlisting}[language=Java, caption=Masking Mode]
+
+#include "LED.h"
+
+int main(void){
+    LED_Init();
+    LED_On(3);//on
+    LED_Off(3);//off
+}
+    \end{lstlisting}
+    \begin{lstlisting}[language=Java, caption=Function Mode]
+#define ADDRESS(x) (*((volatile unsigned long *)(x)))
+#define BitBand(x, y) ADDRESS(((unsigned long)(x) & 0xF0000000) |
+    0x02000000 | (((unsigned long)(x) & 0x000FFFFF) << 5) | ((y) << 2))
+
+volatile unsigned long * GPIO1_LED28;
+
+int main(void){
+    GPIO1_LED28 = &BitBand(&LPC_GPIO1->FIOPIN1, 28);
+    *GPIO1_LED28 = 1; //on
+    *GPIO1_LED28 = 0; //off
+}
+    \end{lstlisting}
+    \begin{lstlisting}[language=Java, caption=Bit Banding Mode]
+#define GPIO1_LED31 (*((volatile unsigned long *) 0x233806FC))
+
+int main(void){
+   GPIO1_LED31 = 1; //on
+   GPIO1_LED31 = 0; //off
+}
+    \end{lstlisting}
+\end{document}
