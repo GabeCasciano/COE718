@@ -34,7 +34,7 @@ int fputc( int ch, FILE *f){
 
 volatile unsigned long * GPIO1_LED28;
 volatile unsigned long * GPIO1_LED29;
-#define GPIO1_LED31 (*((volatile unsigned long *) 0x233806FC))
+
 #define GPIO2_LED2 (*((volatile unsigned long *) 0x23380A88))//finish the address
 
 
