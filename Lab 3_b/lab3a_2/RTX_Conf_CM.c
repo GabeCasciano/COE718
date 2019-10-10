@@ -217,7 +217,7 @@ void os_idle_demon (void) {
   /* ready to run.                                                           */
 
   for (;;) {
-    /* HERE: include optional user code to be executed when no thread runs.*/
+    countIDLE++;
   }
 }
 
