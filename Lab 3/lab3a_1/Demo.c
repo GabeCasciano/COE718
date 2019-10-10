@@ -20,7 +20,7 @@ int main(void){
 	SystemInit();
 	os_tsk_create(task1, 1);
 	os_tsk_create(task2, 1);
+	os_sys_init(task1);
 	os_tsk_delete_self();
 
-	os_sys_init(task1);
 }
