@@ -7,7 +7,7 @@
 #include <string.h>
 
 #define __FI        1                    /* Font index 16x24        */
-#define __USE_LCD   0
+//#define __USE_LCD   0
 
 OS_TID MEMid, CPUid, APPid, DEVid, id5;
 double  MEMcnt, CPUcnt, APPcnt, DEVcnt, users;

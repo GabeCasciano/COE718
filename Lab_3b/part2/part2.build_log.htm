@@ -1,0 +1,77 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+S:\COE718\Lab_3b\part2\part2.uvproj
+Project File Date:  10/28/2019
+
+<h2>Output:</h2>
+Rebuild target 'LPC1768'
+assembling startup_LPC17xx.s...
+compiling system_LPC17xx.c...
+compiling Demo-2.c...
+Demo-2.c(22): warning:  #177-D: variable "out" was declared but never referenced
+   char out[20];
+Demo-2.c(39): warning:  #177-D: variable "out" was declared but never referenced
+    char out[20];
+Demo-2.c(58): warning:  #177-D: variable "out" was declared but never referenced
+    char out[20];
+Demo-2.c(75): warning:  #177-D: variable "out" was declared but never referenced
+    char out[20];
+Demo-2.c(99): warning:  #177-D: variable "out" was declared but never referenced
+   char out[20];
+Demo-2.c: 5 warnings, 0 errors
+compiling GLCD_SPI_LPC1700.c...
+compiling LED.c...
+compiling RTX_Conf_CM.c...
+RTX_Conf_CM.c(277): warning:  #1-D: last line of file ends without a newline
+   *---------------------------------------------------------------------------*/
+RTX_Conf_CM.c: 1 warning, 0 errors
+linking...
+Program Size: Code=13892 RO-data=540 RW-data=112 ZI-data=3664  
+".\part2.axf" - 0 Error(s), 6 Warning(s).
+Undefined symbol osKernelInitialize (referred from demo-2.o).
+.\part2.axf: Error: L6218E: Undefined symbol osKernelStart (referred from demo-2.o).
+.\part2.axf: Error: L6218E: Undefined symbol osThreadCreate (referred from demo-2.o).
+.\part2.axf: Error: L6218E: Undefined symbol osThreadTerminate (referred from demo-2.o).
+.\part2.axf: Error: L6218E: Undefined symbol rt_tsk_pass (referred from demo-2.o).
+.\part2.axf: Error: L6218E: Undefined symbol osTimerThread (referred from rtx_conf_cm.o).
+.\part2.axf: Error: L6218E: Undefined symbol rt_mut_init (referred from rtx_conf_cm.o).
+.\part2.axf: Error: L6218E: Undefined symbol rt_mut_release (referred from rtx_conf_cm.o).
+.\part2.axf: Error: L6218E: Undefined symbol rt_mut_wait (referred from rtx_conf_cm.o).
+.\part2.axf: Error: L6218E: Undefined symbol rt_tsk_self (referred from rtx_conf_cm.o).
+Not enough information to list image symbols.
+Finished: 1 information, 0 warning and 11 error messages.
+".\part2.axf" - 11 Error(s), 6 Warning(s).
+Target not created
+ined
+  extern _ARMABI size_t fwrite(const void * __restrict /*ptr*/,
+C:\Keil\ARM\ARMCC\bin\..\include\stdio.h(747): error:  #20: identifier "size_t" is undefined
+                      size_t /*size*/, size_t /*nmemb*/, FILE * __restrict /*stream*/) __attribute__((__nonnull__(1,4)));
+C:\Keil\ARM\ARMCC\bin\..\include\stdio.h(747): error:  #20: identifier "size_t" is undefined
+                      size_t /*size*/, size_t /*nmemb*/, FILE * __restrict /*stream*/) __attribute__((__nonnull__(1,4)));
+Demo-2.c(22): warning:  #177-D: variable "out" was declared but never referenced
+   char out[20];
+Demo-2.c(39): warning:  #177-D: variable "out" was declared but never referenced
+    char out[20];
+Demo-2.c(58): warning:  #177-D: variable "out" was declared but never referenced
+    char out[20];
+Demo-2.c(75): warning:  #177-D: variable "out" was declared but never referenced
+    char out[20];
+Demo-2.c(99): warning:  #177-D: variable "out" was declared but never referenced
+   char out[20];
+Demo-2.c: 5 warnings, 14 errors
+compiling GLCD_SPI_LPC1700.c...
+compiling LED.c...
+compiling RTX_Conf_CM.c...
+RTX_Conf_CM.c(273): error:  #5: cannot open source input file "RTX_CM_lib.h": No such file or directory
+  #include "RTX_CM_lib.h"
+RTX_Conf_CM.c: 0 warnings, 1 error
+".\part2.axf" - 15 Error(s), 5 Warning(s).
+Target not created
+: 1 warning, 0 errors
+".\part2.axf" - 14 Error(s), 6 Warning(s).
+Target not created
+Error: Could not load file 'S:\COE718\Lab_3b\part2\part2.axf'. Debugger aborted !
+Error: Could not load file 'S:\COE718\Lab_3b\part2\part2.axf'. Debugger aborted !

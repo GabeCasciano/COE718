@@ -6,7 +6,7 @@
 #include "LED.h"
 
 #define __FI        1                    /* Font index 16x24        */
-#define __USE_LCD   0	
+//#define __USE_LCD   0	
 
 long global_c1 = 0, global_c2 = 0, global_c3 = 0;
 

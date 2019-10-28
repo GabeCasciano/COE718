@@ -12,16 +12,16 @@
 //#define __USE_LCD   0 //uncomment for DEM0
 
 
-osThreadId idA, idB, idc, idD, idE;
-
+osThreadId idA, idB, idC, idD, idE;
+int x, i, p, j, n, m;
+char out[20];
 #define PI 3.142
 
 double factor;
 
 __task void threadA (void const *arg) {
-	char out[20]; 
 	int A = 0;
-	for (int x=0; x<257; x++){  
+	for (x=0; x<257; x++){  
 		A = A + (x + (x+2));
 		os_tsk_pass() ;//for concurrent execution
 	}
@@ -34,28 +34,31 @@ __task void threadA (void const *arg) {
 }
 
 __task void threadB (void const *arg) {
+	
 	int B = 0;
 	factor=1;
-	for(int i = 1; i<17; i++){
+	for(i = 1; i<17; i++){
 		factor = factor*i;
 		B = B + pow(2,i)/factor;
 		os_tsk_pass() ;//for concurrent execution
 	}
 #ifdef __USE_LCD
 	GLCD_SetTextColor(Red);
-	GLCD_DisplayString(5, 12, __FI, "6.389");
+	sprintf(out, "%d", (char)B);
+	GLCD_DisplayString(5, 12, __FI, out);
 #endif
 	osThreadTerminate(idB);
 }
 
 __task void threadC (void const *arg) {
 	int C = 0;
-	for (int n=1; n<17; n++){
+	for (n=1; n<17; n++){
 		C = C + (n+1)/n;
 	} 
 #ifdef __USE_LCD
 	GLCD_SetTextColor(Red);
-	GLCD_DisplayString(6, 12, __FI, "19.38");
+	sprintf(out, "%d", (char)C);
+	GLCD_DisplayString(6, 12, __FI, out);
 #endif
 	osThreadTerminate(idC);	
 }
@@ -63,7 +66,7 @@ __task void threadC (void const *arg) {
 __task void threadD (void const *arg) {
 	int D = 0;
 	factor=1;
-	for (int m=0; m<6; m++){
+	for (m=0; m<6; m++){
 		factor = factor*m;
 		if(factor == 0){
 			factor=1;
@@ -75,21 +78,23 @@ __task void threadD (void const *arg) {
 	}
 #ifdef __USE_LCD
 	GLCD_SetTextColor(Red);
-	GLCD_DisplayString(7, 12, __FI, "91.416");
+	sprintf(out, "%d", (char)D);
+	GLCD_DisplayString(7, 12, __FI, out);
 #endif
 	osThreadTerminate(idD);
 }
 
-__task void threadD(void const *arg) {
+__task void threadE(void const *arg) {
 	int E = 0;
 	int radius=1;
-	for (int p=1; p<13; p++){
+	for (p=1; p<13; p++){
 		E = E + p*PI*(pow(radius, 2));
 		os_tsk_pass() ;
 	}
 #ifdef __USE_LCD
 	GLCD_SetTextColor(Red);
-	GLCD_DisplayString(8, 12, __FI, "78");
+	sprintf(out, "%d", (char)E);
+	GLCD_DisplayString(8, 12, __FI, out);
 #endif	
 	osThreadTerminate(idE);	
 }
@@ -122,11 +127,11 @@ int main (void) {
 #endif
 	
 	osKernelInitialize ();   // setup kernel
-	ID_A = osThreadCreate (osThread(taskA), NULL);   // create threads
- 	ID_B = osThreadCreate (osThread(taskB), NULL);
-	ID_C = osThreadCreate (osThread(taskC), NULL); 
-	ID_D = osThreadCreate (osThread(taskD), NULL); 
-	ID_E = osThreadCreate (osThread(taskE), NULL); 
+	idA = osThreadCreate (osThread(threadA), NULL);   // create threads
+ 	idB = osThreadCreate (osThread(threadB), NULL);
+	idC = osThreadCreate (osThread(threadC), NULL); 
+	idD = osThreadCreate (osThread(threadD), NULL); 
+	idE = osThreadCreate (osThread(threadE), NULL); 
  	osKernelStart ();       // start kernel
 
 	osDelay(osWaitForever);
