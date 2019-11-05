@@ -9,7 +9,7 @@
 #include "GLCD.h"
 
 #define __FI        1                    
-//#define __USE_LCD   0 //uncomment for DEM0
+#define __USE_LCD   0 //uncomment for DEM0
 
 
 osThreadId idA, idB, idC, idD, idE;
