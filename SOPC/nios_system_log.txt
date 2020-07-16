@@ -1,0 +1,73 @@
+Altera SOPC Builder Version 11.10 Build 173
+Copyright (c) 1999-2009 Altera Corporation.  All rights reserved.
+
+
+# 2019.11.17 23:30:08 (*) mk_custom_sdk starting
+# 2019.11.17 23:30:08 (*) Reading project /home/student1/gcascian/COE718/SOPC/nios_system.ptf.
+
+# 2019.11.17 23:30:08 (*) Finding all CPUs
+# 2019.11.17 23:30:08 (*) Finding all available components
+# 2019.11.17 23:30:08 (*) Reading /home/student1/gcascian/COE718/SOPC/.sopc_builder/install.ptf
+
+# 2019.11.17 23:30:08 (*) Found 63 components
+
+# 2019.11.17 23:30:08 (*) Finding all peripherals
+
+# 2019.11.17 23:30:08 (*) Finding software components
+
+# 2019.11.17 23:30:08 (*) (Legacy SDK Generation Skipped)
+# 2019.11.17 23:30:08 (*) (All TCL Script Generation Skipped)
+# 2019.11.17 23:30:08 (*) (No Libraries Built)
+# 2019.11.17 23:30:08 (*) (Contents Generation Skipped)
+# 2019.11.17 23:30:08 (*) mk_custom_sdk finishing
+# 2019.11.17 23:30:08 (*) Starting generation for system: nios_system.
+
+.
+.
+..
+.
+
+# 2019.11.17 23:30:09 (*) Running Generator Program for cpu_0
+
+# 2019.11.17 23:30:10 (*) Starting Nios II generation
+# 2019.11.17 23:30:10 (*)   Checking for plaintext license.
+# 2019.11.17 23:30:11 (*)   Couldn't query license setup in Quartus directory /CMC/tools/altera/11.1/quartus
+# 2019.11.17 23:30:11 (*)   Defaulting to contents of LM_LICENSE_FILE environment variable
+# 2019.11.17 23:30:11 (*)   Plaintext license not found.
+# 2019.11.17 23:30:11 (*)   No license required to generate encrypted Nios II/e.
+# 2019.11.17 23:30:11 (*)   Getting CPU configuration settings
+# 2019.11.17 23:30:11 (*)   Elaborating CPU configuration settings
+# 2019.11.17 23:30:11 (*)   Creating all objects for CPU
+# 2019.11.17 23:30:12 (*)   Generating HDL from CPU objects
+# 2019.11.17 23:30:12 (*)   Creating plain-text HDL
+# 2019.11.17 23:30:15 (*) Done Nios II generation
+
+# 2019.11.17 23:30:15 (*) Running Generator Program for onchip_memory2_0
+
+# 2019.11.17 23:30:15 (*) Running Generator Program for switches
+
+# 2019.11.17 23:30:16 (*) Running Generator Program for LEDs
+
+# 2019.11.17 23:30:16 (*) Running Generator Program for jtag_uart_0
+
+
+# 2019.11.17 23:30:17 (*) Making arbitration and system (top) modules.
+
+# 2019.11.17 23:30:19 (*) Generating Quartus symbol for top level: nios_system
+# 2019.11.17 23:30:19 (*) Generating Symbol /home/student1/gcascian/COE718/SOPC/nios_system.bsf
+
+# 2019.11.17 23:30:19 (*) Creating command-line system-generation script: /home/student1/gcascian/COE718/SOPC/nios_system_generation_script
+
+# 2019.11.17 23:30:19 (*) Running setup for HDL simulator: modelsim
+
+
+# 2019.11.17 23:30:19 (*) Completed generation for system: nios_system.
+# 2019.11.17 23:30:19 (*) THE FOLLOWING SYSTEM ITEMS HAVE BEEN GENERATED:
+  SOPC Builder database : /home/student1/gcascian/COE718/SOPC/nios_system.ptf 
+  System HDL Model : /home/student1/gcascian/COE718/SOPC/nios_system.vhd 
+  System Generation Script : /home/student1/gcascian/COE718/SOPC/nios_system_generation_script 
+
+# 2019.11.17 23:30:19 (*) SUCCESS: SYSTEM GENERATION COMPLETED.
+
+
+Press 'Exit' to exit.

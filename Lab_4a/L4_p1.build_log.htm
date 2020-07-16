@@ -1,0 +1,52 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+S:\COE718\Lab_4a\L4_p1.uvproj
+Project File Date:  11/18/2019
+
+<h2>Output:</h2>
+Build target 'LPC1768'
+compiling a2.c...
+linking...
+Program Size: Code=8084 RO-data=432 RW-data=100 ZI-data=31020  
+".\L4_p1.axf" - 0 Error(s), 0 Warning(s).
+</pre>
+</body>
+</html>
+ referenced
+        int d=0;
+a2.c(89): warning:  #550-D: variable "c" was set but never used
+        int c=0;
+a2.c(90): warning:  #177-D: variable "d" was declared but never referenced
+        int d=0;
+a2.c(114): warning:  #550-D: variable "c" was set but never used
+        int c=0;
+a2.c(115): warning:  #177-D: variable "d" was declared but never referenced
+        int d=0;
+a2.c: 6 warnings, 0 errors
+linking...
+Program Size: Code=8104 RO-data=432 RW-data=100 ZI-data=31020  
+".\L4_p1.axf" - 0 Error(s), 6 Warning(s).
+"c" was set but never used
+        int c=0;
+a1.c(103): warning:  #177-D: variable "d" was declared but never referenced
+        int d=0;
+a1.c: 6 warnings, 0 errors
+compiling ADC.c...
+compiling Demo.c...
+compiling GLCD_SPI_LPC1700.c...
+compiling IRQ.c...
+compiling Joystick.c...
+compiling KDB.c...
+compiling LED.c...
+linking...
+.\L4_p1.axf: Error: L6200E: Symbol SysTick_Handler multiply defined (by hal_cm3.o and irq.o).
+.\L4_p1.axf: Error: L6200E: Symbol main multiply defined (by demo.o and a1.o).
+.\L4_p1.axf: Error: L6200E: Symbol __ARM_use_no_argv multiply defined (by demo.o and a1.o).
+Not enough information to list image symbols.
+Not enough information to list the image map.
+Finished: 2 information, 0 warning and 3 error messages.
+".\L4_p1.axf" - 3 Error(s), 7 Warning(s).
+Target not created
