@@ -126,7 +126,7 @@ int main(void){
 // ciompleted timer declarations. now we must start the timers initi stuff
 
 	LED_Init();
-	download_more_ram = osSemaphoreCreate(osSemaphore(download_more_ram),1);
+	download_more_ram = osSemaphoreCreate(osSemaphore(download_more_ram),1); // I did not name these, blame teh lab partner
 
 	osTimerStart(tm_S,1);
 	osTimerStart(tm0,4000);
